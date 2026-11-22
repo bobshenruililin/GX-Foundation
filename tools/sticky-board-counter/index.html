@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Board Counter · GX Foundation prototype</title>
+<style>
+:root{color-scheme:light;--ink:#192f2d;--green:#16624e;--line:#cfdbd4;--paper:#f4f7f3}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.5 "DM Sans",system-ui,sans-serif}
+header,main,footer{width:min(1120px,92%);margin:auto}header{padding:19px 0;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;font-weight:650}
+.gx{font:bold italic 27px/1 Georgia;color:#a73342;letter-spacing:-3px;padding-right:4px}header small{margin-left:auto;font-weight:500;color:#49605a}
+.intro{margin:32px 0 24px}.intro h1{margin:0;font:bold clamp(2.3rem,5vw,4.2rem)/1.08 Georgia,serif;letter-spacing:-.05em}.intro p{margin:10px 0;color:#486059}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 298px;gap:18px;align-items:start}.panel,aside{background:white;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.bar,.inside{padding:16px 20px}.bar{display:flex;align-items:center;justify-content:space-between;gap:12px}.bar strong{overflow-wrap:anywhere}.bar small{color:#586e65}
+.stage{position:relative;background:#e2eae1;padding:16px;text-align:center}.stage canvas{max-width:100%;height:auto;vertical-align:middle;border-radius:4px;cursor:crosshair;touch-action:manipulation}
+.actions{display:flex;flex-wrap:wrap;gap:8px}.inside p,aside p{margin:0 0 15px;color:#4d625b}.inside p:last-child{margin-bottom:0}
+button,.upload,select{font:inherit;font-size:.94rem;border-radius:9px;border:1px solid #c0cfc6;background:white;color:var(--ink);padding:9px 14px;cursor:pointer}
+button:hover,.upload:hover{background:#edf4ee}button:disabled{opacity:.45;cursor:default}.primary{background:var(--green);color:white;border-color:var(--green);font-weight:650}.primary:hover{background:#104d3d}
+input[type=file]{position:absolute;width:1px;height:1px;clip-path:inset(50%)}input:focus-visible+.upload,button:focus-visible,select:focus-visible,canvas:focus-visible{outline:3px solid #bd692a;outline-offset:2px}
+aside{padding:20px}h2{font-size:1rem;margin:0}.count{font:normal 4.8rem/1.1 Georgia;color:var(--green)}.rule{border:0;border-top:1px solid var(--line);margin:18px 0}
+label.field{display:block;font-weight:650;margin:14px 0 4px}input[type=range],select{width:100%;accent-color:var(--green)}.note,footer{font-size:.86rem;color:#4d625b}
+#status{min-height:1.5em;margin:8px 0 0}footer{padding:20px 0 32px}.meta{font-size:.9rem;color:#486059}
+@media(max-width:760px){.layout{grid-template-columns:1fr;gap:10px}.intro{margin:20px 0 16px}.stage{padding:8px}.bar,.inside,aside{padding:14px}.count{font-size:3.5rem}header{padding:12px 0}}
+</style></head>
+<body><header><span class="gx" aria-hidden="true">GX</span> GX Foundation <small>Field prototype</small></header>
+<main><div class="intro"><h1>Sticky-board counter</h1><p>Photograph a board, review the marked insects, and record a rough mosquito count.</p>
+<div class="actions"><input id="photo" type="file" accept="image/*"><label class="upload primary" for="photo">Choose board photo</label><button id="demo">Try sample board</button></div><p id="status" class="note" role="status"></p></div>
+<div class="layout"><section class="panel" aria-label="Board review"><div class="bar"><strong id="name">Illustrated sample</strong><small id="size"></small></div>
+<div class="stage"><canvas id="board" aria-label="Board image with candidate rings"></canvas></div>
+<div class="inside"><p id="instruction">Tap a ring to remove it. Tap a missed insect to add it.</p><div class="actions"><button id="region">Select board area</button><button id="undo" disabled>Undo</button><button id="marks" aria-pressed="true">Hide marks</button></div></div></section>
+<aside><h2>Estimated count</h2><div class="count" id="count" aria-live="polite">–</div><div class="meta" id="details"></div><hr class="rule"><p class="note">The automatic pass finds contrasting spots. Check the rings for debris, other insects, and overlapping catches.</p>
+<label class="field" for="polarity">Insects appear</label><select id="polarity"><option value="dark">Dark on a lighter board</option><option value="light">Light on a darker board</option></select>
+<label class="field" for="sensitivity">Sensitivity · <output id="level">3</output> / 5</label><input id="sensitivity" type="range" min="1" max="5" value="3">
+<button id="detect">Recount area</button><p class="note" style="margin-top:8px">Recount replaces manual edits. Undo restores them.</p>
+<hr class="rule"><button id="save">Save marked image</button></aside></div></main>
+<footer>Works on this device. For the clearest photo, fill the frame with one board and avoid glare.</footer>
+<script>
+'use strict';
+const el=id=>document.getElementById(id);
+const board=el('board'), ctx=board.getContext('2d');
+const source=document.createElement('canvas'), src=source.getContext('2d',{willReadFrequently:true});
+let area, points=[], baseline=0, snapshots=[], picking=false, first=null, showing=true, sequence=0, filename='Illustrated sample';
+function status(message){el('status').textContent=message}
+function remember(){
+ snapshots.push({area:{...area},points:points.slice(),baseline});
+ if(snapshots.length>15)snapshots.shift();
+}
+function draw(){
+ const w=board.width,h=board.height,scale=board.clientWidth||w;
+ ctx.drawImage(source,0,0);
+ if(area.x||area.y||area.w<w||area.h<h){
+  ctx.fillStyle='rgba(15,31,27,.42)';ctx.beginPath();ctx.rect(0,0,w,h);ctx.rect(area.x,area.y,area.w,area.h);ctx.fill('evenodd');
+ }
+ const ring=Math.max(5,w/scale*6);
+ if(showing){for(const p of points){
+  ctx.beginPath();ctx.arc(p.x,p.y,Math.max(ring,p.radius||0),0,Math.PI*2);
+  ctx.lineWidth=3*w/scale;ctx.strokeStyle='rgba(255,255,255,.9)';ctx.stroke();
+  ctx.lineWidth=1.6*w/scale;ctx.strokeStyle=p.manual?'#a5461c':'#007a60';ctx.stroke();
+ }}
+ if(first){ctx.fillStyle='#bc5424';ctx.beginPath();ctx.arc(first.x,first.y,ring,0,Math.PI*2);ctx.fill()}
+ el('count').textContent=points.length;el('details').textContent=baseline+' automatic · '+points.filter(p=>p.manual).length+' added · '+(baseline-points.filter(p=>!p.manual).length)+' removed';
+ el('size').textContent=w+' × '+h;el('name').textContent=filename;el('undo').disabled=!snapshots.length;
+ el('marks').textContent=showing?'Hide marks':'Show marks';el('marks').setAttribute('aria-pressed',String(showing));
+ el('region').textContent=picking?'Cancel selection':'Select board area';
+ el('instruction').textContent=picking?(first?'Tap the opposite corner.':'Tap one corner of the board area.'):(showing?'Tap a ring to remove it. Tap a missed insect to add it.':'Marks are hidden. Show them to edit the count.');
+}
+function candidates(){
+ const {x,y,w,h}=area, bytes=src.getImageData(x,y,w,h).data;
+ const stride=w+1, sums=new Uint32Array(stride*(h+1)), gray=new Uint8Array(w*h), mask=new Uint8Array(w*h);
+ for(let row=0;row<h;row++){
+  let total=0;for(let col=0;col<w;col++){
+   const i=row*w+col,k=i*4;gray[i]=(77*bytes[k]+150*bytes[k+1]+29*bytes[k+2])>>8;
+   total+=gray[i];sums[(row+1)*stride+col+1]=total+sums[row*stride+col+1];
+  }
+ }
+ const windowRadius=Math.max(5,Math.round(Math.min(w,h)*.018)), level=+el('sensitivity').value;
+ const cutoff=[0,53,40,29,20,13][level], sign=el('polarity').value==='dark'?1:-1;
+ for(let row=0;row<h;row++)for(let col=0;col<w;col++){
+  const l=Math.max(0,col-windowRadius),r=Math.min(w,col+windowRadius+1),t=Math.max(0,row-windowRadius),b=Math.min(h,row+windowRadius+1);
+  const mean=(sums[b*stride+r]-sums[t*stride+r]-sums[b*stride+l]+sums[t*stride+l])/((r-l)*(b-t));
+  if(sign*(mean-gray[row*w+col])>cutoff)mask[row*w+col]=1;
+ }
+ const queue=new Int32Array(mask.length),found=[],minArea=Math.max(3,Math.round(w*h/300000)), maxArea=Math.max(80,w*h*.004);
+ for(let i=0;i<mask.length;i++){
+  if(!mask[i])continue;
+  let head=0,tail=1,sx=0,sy=0,left=w,right=0,top=h,bottom=0;queue[0]=i;mask[i]=0;
+  while(head<tail){
+   const p=queue[head++],cy=Math.floor(p/w),cx=p-cy*w;sx+=cx;sy+=cy;
+   left=Math.min(left,cx);right=Math.max(right,cx);top=Math.min(top,cy);bottom=Math.max(bottom,cy);
+   for(let yy=Math.max(0,cy-1);yy<=Math.min(h-1,cy+1);yy++)for(let xx=Math.max(0,cx-1);xx<=Math.min(w-1,cx+1);xx++){
+    const n=yy*w+xx;if(mask[n]){mask[n]=0;queue[tail++]=n}
+   }
+  }
+  const bw=right-left+1,bh=bottom-top+1;
+  if(tail>=minArea && tail<=maxArea && Math.max(bw,bh)<Math.max(30,Math.min(w,h)*.14) && Math.max(bw/bh,bh/bw)<13)
+   found.push({x:x+sx/tail,y:y+sy/tail,radius:Math.max(bw,bh)*.56});
+ }
+ return found;
+}
+function recount(){points=candidates();baseline=points.length;first=null;picking=false;showing=true;draw()}
+function reset(name){
+ filename=name;board.width=source.width;board.height=source.height;area={x:0,y:0,w:source.width,h:source.height};
+ snapshots=[];el('polarity').value='dark';el('sensitivity').value=3;el('level').textContent=3;recount()
+}
+function demo(){
+ sequence++;el('photo').value='';source.width=960;source.height=580;
+ src.fillStyle='#f7df84';src.fillRect(0,0,960,580);
+ let seed=405;const rand=()=>((seed=(seed*1664525+1013904223)>>>0)/4294967296);
+ for(let i=0;i<11000;i++){src.fillStyle=i%2?'#f5dc81':'#fae48d';src.fillRect(rand()*960,rand()*580,2,2)}
+ for(let i=0;i<18;i++){
+  const x=75+(i%6)*155+rand()*60,y=82+Math.floor(i/6)*171+rand()*59;
+  src.save();src.translate(x,y);src.rotate(rand()*Math.PI);src.strokeStyle='#524a36';src.fillStyle='#39382e';src.lineWidth=1.5;
+  for(const side of [-1,1]){
+   for(const offset of [-3,0,3]){src.beginPath();src.moveTo(0,offset);src.lineTo(side*5,offset-3);src.lineTo(side*9,offset+2);src.stroke()}
+   src.beginPath();src.ellipse(side*3,1,2,6,-side*.5,0,Math.PI*2);src.stroke()
+  }
+  src.beginPath();src.ellipse(0,0,2,7,0,0,Math.PI*2);src.fill();src.restore()
+ }
+ reset('Illustrated sample');status('Practice board with 18 drawn insects. Choose a photo to count a real board.')
+}
+el('photo').onchange=async e=>{
+ const file=e.target.files[0];if(!file)return;const token=++sequence,url=URL.createObjectURL(file);
+ try{status('Reading photo…');const img=new Image();img.src=url;await img.decode();if(token!==sequence)return;
+  const scale=Math.min(1,1800/Math.max(img.naturalWidth,img.naturalHeight));source.width=Math.max(1,Math.round(img.naturalWidth*scale));source.height=Math.max(1,Math.round(img.naturalHeight*scale));
+  src.fillStyle='white';src.fillRect(0,0,source.width,source.height);src.drawImage(img,0,0,source.width,source.height);reset(file.name);status('Photo processed on this device. Review the rings before saving.')
+ }catch{if(token===sequence)status('Could not read this photo. Try a JPEG or PNG.')}finally{URL.revokeObjectURL(url);if(token===sequence)e.target.value=''}
+};
+el('demo').onclick=demo;el('detect').onclick=()=>{remember();recount();status('Recounted the selected area.')};
+el('sensitivity').oninput=e=>el('level').textContent=e.target.value;
+el('marks').onclick=()=>{showing=!showing;draw()};
+el('region').onclick=()=>{picking=!picking;first=null;draw()};
+el('undo').onclick=()=>{const s=snapshots.pop();if(s){area=s.area;points=s.points;baseline=s.baseline;first=null;picking=false;showing=true;draw()}};
+board.onclick=e=>{
+ const box=board.getBoundingClientRect(),ratio=board.width/box.width,x=Math.min(board.width-1,Math.max(0,Math.floor((e.clientX-box.left)*ratio))),y=Math.min(board.height-1,Math.max(0,Math.floor((e.clientY-box.top)*board.height/box.height)));
+ if(picking){
+  if(!first){first={x,y};draw();return}
+  const w=Math.abs(first.x-x)+1,h=Math.abs(first.y-y)+1;
+  if(w<10||h<10){status('Select a larger rectangle.');return}
+  remember();area={x:Math.min(first.x,x),y:Math.min(first.y,y),w,h};recount();status('Recounted inside your board area.');return
+ }
+ if(!showing||x<area.x||y<area.y||x>=area.x+area.w||y>=area.y+area.h)return;
+ let nearest=-1,best=Infinity;points.forEach((p,i)=>{const d=Math.hypot(x-p.x,y-p.y);if(d<=Math.max(9*ratio,p.radius||0)&&d<best){best=d;nearest=i}});
+ remember();if(nearest>=0)points.splice(nearest,1);else points.push({x,y,manual:true});draw()
+};
+el('save').onclick=()=>{
+ const was=showing;showing=true;first=null;picking=false;draw();
+ const out=document.createElement('canvas');out.width=board.width;const pad=Math.max(55,Math.round(out.width*.065));out.height=board.height+pad;
+ const c=out.getContext('2d');c.drawImage(board,0,0);c.fillStyle='#192f2d';c.fillRect(0,board.height,out.width,pad);
+ c.fillStyle='white';c.font='bold '+Math.max(12,Math.round(pad*.33))+'px sans-serif';c.fillText(filename+' · Estimated count: '+points.length,12,board.height+pad*.6,out.width-24);
+ showing=was;draw();out.toBlob(blob=>{if(!blob){status('Image could not be saved.');return}const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='gx-board-count.png';a.click();setTimeout(()=>URL.revokeObjectURL(url),30000)},'image/png')
+};
+window.addEventListener('resize',()=>{if(area)draw()});demo();
+</script></body></html>
