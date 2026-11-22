@@ -166,11 +166,17 @@ addEventListener('scroll',queuePaint,{passive:true}); addEventListener('resize',
 motion.addEventListener('change',queuePaint);
 let finishPour;
 cupButton.onclick = () => {
+  if (frame.classList.contains('pouring')) return;
   clearTimeout(finishPour);
   frame.classList.add('pouring');
+  cupButton.hidden = true;
+  const afterPour = $('.after-pour');
+  afterPour.hidden = false;
   finishPour=setTimeout(() => {
     $('#works').scrollIntoView({behavior:motion.matches?'instant':'smooth',block:'center'});
     frame.classList.remove('pouring');
-  },motion.matches?0:1100);
+    cupButton.hidden = false;
+    afterPour.hidden = true;
+  }, motion.matches ? 1300 : 2300);
 };
 language(); paintScroll();
