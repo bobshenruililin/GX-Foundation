@@ -4,47 +4,42 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Board Counter · GX Foundation prototype</title>
 <style>
-:root{color-scheme:light;--ink:#192f2d;--green:#16624e;--line:#cfdbd4;--paper:#f4f7f3}
-*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.5 "DM Sans",system-ui,sans-serif}
-header,main,footer{width:min(1120px,92%);margin:auto}header{padding:19px 0;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;font-weight:650}
-.gx{font:bold italic 27px/1 Georgia;color:#a73342;letter-spacing:-3px;padding-right:4px}header small{margin-left:auto;font-weight:500;color:#49605a}
-.intro{margin:32px 0 24px}.intro h1{margin:0;font:bold clamp(2.3rem,5vw,4.2rem)/1.08 Georgia,serif;letter-spacing:-.05em}.intro p{margin:10px 0;color:#486059}
-.layout{display:grid;grid-template-columns:minmax(0,1fr) 298px;gap:18px;align-items:start}.panel,aside{background:white;border:1px solid var(--line);border-radius:16px;overflow:hidden}
-.bar,.inside{padding:16px 20px}.bar{display:flex;align-items:center;justify-content:space-between;gap:12px}.bar strong{overflow-wrap:anywhere}.bar small{color:#586e65}
-.stage{position:relative;background:#e2eae1;padding:16px;text-align:center}.stage canvas{max-width:100%;height:auto;vertical-align:middle;border-radius:4px;cursor:crosshair;touch-action:manipulation}
-.actions{display:flex;flex-wrap:wrap;gap:8px}.inside p,aside p{margin:0 0 15px;color:#4d625b}.inside p:last-child{margin-bottom:0}
-button,.upload,select{font:inherit;font-size:.94rem;border-radius:9px;border:1px solid #c0cfc6;background:white;color:var(--ink);padding:9px 14px;cursor:pointer}
-button:hover,.upload:hover{background:#edf4ee}button:disabled{opacity:.45;cursor:default}.primary{background:var(--green);color:white;border-color:var(--green);font-weight:650}.primary:hover{background:#104d3d}
-input[type=file]{position:absolute;width:1px;height:1px;clip-path:inset(50%)}input:focus-visible+.upload,button:focus-visible,select:focus-visible,canvas:focus-visible{outline:3px solid #bd692a;outline-offset:2px}
-aside{padding:20px}h2{font-size:1rem;margin:0}.count{font:normal 4.8rem/1.1 Georgia;color:var(--green)}.rule{border:0;border-top:1px solid var(--line);margin:18px 0}
-label.field{display:block;font-weight:650;margin:14px 0 4px}input[type=range],select{width:100%;accent-color:var(--green)}.note,footer{font-size:.86rem;color:#4d625b}
-#status{min-height:1.5em;margin:8px 0 0}footer{padding:20px 0 32px}.meta{font-size:.9rem;color:#486059}
-@media(max-width:760px){.layout{grid-template-columns:1fr;gap:10px}.intro{margin:20px 0 16px}.stage{padding:8px}.bar,.inside,aside{padding:14px}.count{font-size:3.5rem}header{padding:12px 0}}
-[hidden]{display:none!important}
-.viewer{overflow:auto;max-height:65vh;overscroll-behavior:contain;text-align:left}.viewer canvas{width:100%;max-width:none;touch-action:pan-x pan-y pinch-zoom}
-.stage{padding:6px}.summary{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}.summary output{font:600 2rem/1 Georgia;color:var(--green)}.panel,.layout>*{min-width:0}
-dialog{color:var(--ink);border:0;border-radius:18px;padding:18px;width:min(95vw,620px);max-height:94dvh}dialog::backdrop{background:#142322d9}
-video{width:100%;max-height:60dvh;background:#162726;object-fit:contain;border-radius:9px}
-details summary{cursor:pointer;font-weight:650;padding:8px 0}details p{font-size:.93rem}.teach{margin:10px 0}
-button[aria-pressed=true].teachBtn{background:#1b5e4c;color:white}
-</style></head>
-<body><header><span class="gx" aria-hidden="true">GX</span> GX Foundation <small>Field prototype</small></header>
-<main><div class="intro"><h1>Sticky-board counter</h1><p>Frame one yellow sticky sheet to estimate how many mosquitoes it caught.</p>
-<div class="actions"><button id="camera" class="primary">Open camera</button><input id="native" type="file" accept="image/*" capture="environment"><input id="photo" type="file" accept="image/*"><label class="upload" for="photo">Choose board photo</label><button id="fallback" hidden>Use system camera</button><button id="demo">Try 800-mosquito sample</button></div><p id="status" class="note" role="status"></p></div>
-<div class="layout"><section class="panel" aria-label="Board review"><div class="bar"><strong id="name">Illustrated sample</strong><small id="size"></small></div>
-<div class="bar summary"><div><output id="quickCount">–</output> estimated</div><button id="zoom">Magnify 5×</button></div><div class="inside" id="teachBar" hidden><div class="actions"><button id="switchLabel"></button><button id="endLabels">Finish labeling</button></div><small id="teachTotals"></small></div><div class="stage"><div class="viewer" id="viewer"><canvas id="board" aria-label="Board image with candidate rings"></canvas></div></div>
-<div class="inside"><p id="instruction">Tap a ring to remove it. Tap a missed insect to add it.</p><div class="actions"><button id="region">Select board area</button><button id="overlap" aria-pressed="false">Add overlapping mosquito</button><button id="undo" disabled>Undo</button><button id="marks" aria-pressed="true">Hide marks</button></div></div></section>
-<aside><h2>Estimated count</h2><div class="count" id="count" aria-live="polite">–</div><div class="meta" id="details"></div><hr class="rule"><p class="note">The automatic pass finds contrasting spots. Check the rings for debris, other insects, and overlapping catches.</p>
-<label class="field" for="polarity">Insects appear</label><select id="polarity"><option value="dark">Dark mosquitoes on yellow or pale paper</option><option value="light">Light on a darker board</option></select>
+:root{color-scheme:light;--ink:#18382f;--green:#175e46;--line:#d5ded4;--muted:#4c645a}
+*{box-sizing:border-box}[hidden]{display:none!important}
+body{margin:0;background:#f5f7f2;color:var(--ink);font:16px/1.5 "DM Sans",system-ui,sans-serif}
+header,main{width:min(100% - 32px,680px);margin:auto}header{display:flex;align-items:center;gap:10px;padding:18px 0;border-bottom:1px solid var(--line);font-weight:650}.gx{font:bold italic 26px Georgia;color:#a33342;letter-spacing:-3px;padding-right:4px}header small{margin-left:auto;font-size:.83rem;color:var(--muted);font-weight:500}
+main{padding:clamp(24px,6vh,64px) 0 40px}.card{padding:clamp(20px,5vw,38px);background:#fff;border:1px solid var(--line);border-radius:20px}
+h1,h2,h3,p{margin:0}h1,h2{line-height:1.08;letter-spacing:-.04em}h1{font-size:clamp(2rem,6vw,3rem)}h2{font-size:1.45rem}h3{font-size:1rem}p{color:var(--muted)}
+.lead{margin:12px 0 24px;max-width:35ch}.art{display:block;width:138px;height:auto;margin-bottom:22px}
+button,.upload,select{font:inherit;min-height:46px;border:1px solid var(--line);border-radius:10px;padding:9px 16px;color:var(--ink);background:white;cursor:pointer}
+button:hover,.upload:hover{background:#f1f5ed}button:disabled{opacity:.5;cursor:default}.primary{background:var(--green);border-color:var(--green);color:white;font-weight:650}.primary:hover{background:#124c39}
+.heroactions{display:grid;gap:10px}.heroactions button,.heroactions label{text-align:center}.heroactions .primary{min-height:52px}.link{border:0;background:transparent;color:var(--green);text-decoration:underline;text-underline-offset:3px}
+button:focus-visible,summary:focus-visible,select:focus-visible,.file:focus-visible+.upload{outline:3px solid #c48628;outline-offset:3px}.file{position:absolute;width:1px;height:1px;clip-path:inset(50%)}
+.privacy,.meta,#details,#labels,#teachTotals{font-size:.9rem;color:var(--muted)}.privacy{text-align:center;margin-top:16px}.resulthead{display:flex;align-items:center;justify-content:space-between;gap:12px}.number{font-size:clamp(3.8rem,12vw,5.2rem);line-height:1;letter-spacing:-.06em;font-variant-numeric:tabular-nums;color:var(--green);font-weight:650}.estimate{margin:18px 0 5px}.meta{overflow-wrap:anywhere}.stage{margin:18px 0;border-radius:9px;overflow:hidden;background:#e5eadf}.viewer{overflow:auto;max-height:60vh;overscroll-behavior:contain}.viewer canvas{display:block;width:100%;height:auto;touch-action:pan-x pan-y pinch-zoom}
+.actions{display:flex;gap:8px;flex-wrap:wrap}.actions>button{flex:0 1 auto}details{margin-top:16px;border-top:1px solid var(--line);padding-top:6px}summary{font-weight:650;cursor:pointer;min-height:44px;padding:10px 0}details p{margin:5px 0 12px}.field{display:block;font-weight:600;margin:12px 0 4px}select,input[type=range]{width:100%;accent-color:var(--green)}input[type=range]{height:30px}
+.notice{margin:12px 0}.notice:empty{display:none}#teachBar{margin-top:12px}button[aria-pressed=true].teachBtn{background:var(--green);color:white}
+dialog{width:min(94vw,540px);max-height:96dvh;border:0;border-radius:16px;padding:18px;color:var(--ink)}dialog::backdrop{background:#122920ca}dialog p{margin:8px 0}video{width:100%;max-height:55dvh;border-radius:9px;background:#1a2b24;object-fit:contain}
+</style></head><body>
+<header><span class="gx" aria-hidden="true">GX</span> GX Foundation <small>Field prototype</small></header>
+<main><section id="home" class="card">
+<svg class="art" viewBox="0 0 152 100" aria-hidden="true"><defs><g id="insect" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round"><path d="m0 -4 0 8m0-4-4-3-2 1m6 2 5-3 2 1m-7 2-3 3-3 0m6-3 4 2 2 1"/><ellipse rx="1" ry="3" fill="currentColor"/></g></defs><g fill="none" stroke="#42745d" stroke-width="2" stroke-linecap="round"><path d="M4 20V5h17m112 0h15v15M4 79v16h17m112 0h15V79"/></g><g transform="rotate(-5 76 50)"><rect x="21" y="17" width="110" height="67" rx="3" fill="#e5b724"/><rect x="19" y="14" width="110" height="67" rx="3" fill="#f7d852"/><g color="#514926"><use href="#insect" transform="translate(38 28) rotate(30)"/><use href="#insect" transform="translate(84 32) rotate(76)"/><use href="#insect" transform="translate(67 54) rotate(21)"/><use href="#insect" transform="translate(103 62) rotate(-23)"/><use href="#insect" transform="translate(46 66) rotate(-51)"/></g></g></svg>
+<h1>Mosquito counter</h1><p class="lead">Take a photo of one yellow sticky sheet to estimate how many mosquitoes it caught.</p>
+<div class="heroactions"><button id="camera" class="primary">Take a photo</button><input class="file" id="photo" type="file" accept="image/*"><label class="upload" for="photo">Choose an existing photo</label><button class="link" id="demo">Try a sample sheet</button><button id="resume" hidden>Back to my estimate</button></div>
+<input id="native" hidden type="file" accept="image/*" capture="environment"><button id="fallback" hidden>Use phone camera</button>
+</section>
+<section id="result" class="card" aria-label="Count result" hidden><div class="resulthead"><h2 tabindex="-1" id="resultTitle">Estimated mosquitoes</h2></div>
+<div class="estimate"><output class="number" id="count" aria-live="polite">–</output></div><p id="name" class="meta"></p>
+<div id="teachBar" hidden><div class="actions"><button id="switchLabel"></button><button id="endLabels">Finish labeling</button></div><small id="teachTotals"></small></div>
+<div class="stage"><div class="viewer" id="viewer"><canvas id="board" aria-label="Sheet with a ring around each counted spot"></canvas></div></div>
+<div class="actions"><button id="save" class="primary">Save marked photo</button><button id="newSheet">Count another sheet</button></div>
+<details id="review"><summary>Review or correct the count</summary><p id="instruction"></p><div class="actions"><button id="zoom">Magnify 5×</button><button id="overlap">Add overlapping mosquito</button><button id="undo" disabled>Undo</button><button id="marks" aria-pressed="true">Hide marks</button></div><p id="details"></p>
+<details id="settings"><summary>Counting settings</summary><button id="region">Select board area</button>
 <label class="field" for="sensitivity">Sensitivity · <output id="level">3</output> / 5</label><input id="sensitivity" type="range" min="1" max="5" value="3">
-<button id="detect">Recount area</button><p class="note" style="margin-top:8px">Recount replaces manual edits. Undo restores them.</p>
-<hr class="rule"><details id="cal"><summary>Teach the counter</summary><p>Magnify the board and label examples of both mosquitoes and debris. With at least six of each, fit a small neural filter to the detected spots.</p>
-<div class="actions teach"><button class="teachBtn" id="yes" aria-pressed="false">Label mosquito</button><button class="teachBtn" id="no" aria-pressed="false">Label debris</button></div>
-<p id="labels" aria-live="polite"></p><div class="actions"><button id="train">Apply learning</button><button id="clear">Reset learning</button></div>
-<p class="note">Applying or resetting learning recounts the board. Sample practice is separate. On real boards, only labeled shape and contrast measurements stay in this browser.</p></details>
-<hr class="rule"><button id="save">Save marked image</button></aside></div></main>
-<footer>Works on this device. For the clearest photo, fill the frame with one board and avoid glare.</footer>
-<dialog id="capture"><h2>Frame the yellow sheet</h2><p>Keep all four corners in view and hold the phone parallel. Check that individual mosquito bodies are sharp.</p><video id="video" autoplay muted playsinline></video><p id="cameraState" role="status"></p><div class="actions"><button class="primary" id="shutter">Capture &amp; count</button><button id="auto">Capture when steady</button><button id="cancel">Close</button></div></dialog>
+<label class="field" for="polarity">Board color</label><select id="polarity"><option value="dark">Yellow or light</option><option value="light">Dark</option></select>
+<div class="actions"><button id="detect">Recount</button></div><p>Recount replaces your edits. Undo brings them back.</p></details>
+<details id="cal"><summary>Teach the counter</summary><p>Label six mosquitoes and six pieces of debris, then apply what the counter learned.</p><div class="actions"><button class="teachBtn" id="yes">Label mosquito</button><button class="teachBtn" id="no">Label debris</button></div><p id="labels"></p><div class="actions"><button id="train">Apply learning</button><button id="clear">Reset learning</button></div><p>Learning recounts this sheet. Calibration stays in this browser. Sample practice is separate.</p></details></details></section>
+<p id="status" class="notice" role="status"></p><p class="privacy">Your photos stay on this device.</p></main>
+<dialog id="capture" aria-labelledby="cameraTitle"><h2 id="cameraTitle">Frame the yellow sheet</h2><p>Keep all four corners in view.</p><video id="video" autoplay muted playsinline></video><p id="cameraState" role="status"></p><div class="actions"><button class="primary" id="shutter">Take photo &amp; count</button><button id="auto">Capture when steady</button><button id="cancel">Cancel</button></div></dialog>
 <script>
 'use strict';
 const el=id=>document.getElementById(id);
@@ -108,9 +103,9 @@ function draw(){
   for(const p of raw){const label=boardLabels.get(spotKey(p));ctx.beginPath();ctx.arc(p.x,p.y,Math.max(ring,p.radius)+ctx.lineWidth,0,Math.PI*2);
    ctx.strokeStyle=label?(label.y?'#1447b5':'#bc3e15'):'#655c82';ctx.stroke()}
  }
- el('quickCount').textContent=points.length;updateTeaching();
+ updateTeaching();
  el('count').textContent=points.length;el('details').textContent=baseline+' automatic · '+points.filter(p=>p.manual).length+' added · '+(baseline-points.filter(p=>!p.manual).length)+' removed';
- el('size').textContent=w+' × '+h;el('name').textContent=filename;el('undo').disabled=!snapshots.length;
+ el('name').textContent=sample?'Sample sheet · 800 illustrated mosquitoes':filename;el('undo').disabled=!snapshots.length;
  el('marks').textContent=showing?'Hide marks':'Show marks';el('marks').setAttribute('aria-pressed',String(showing));
  el('region').textContent=picking?'Cancel selection':'Select board area';
  el('overlap').setAttribute('aria-pressed',String(addOverlap));
@@ -210,7 +205,21 @@ function recount(){raw=candidates();applyFilter()}
 function applyFilter(){
  addOverlap=false;points=raw.filter(p=>{const labeled=boardLabels.get(spotKey(p));return network?(labeled?labeled.y===1:predict(network,p.f).score>=.5):true});
  baseline=points.length;first=null;picking=false;showing=true;draw()}
+function resultView(){
+ el('home').hidden=true;el('result').hidden=false;window.scrollTo(0,0);
+ el('resultTitle').focus({preventScroll:true});
+}
+el('newSheet').onclick=()=>{
+ el('result').hidden=true;el('home').hidden=false;el('resume').hidden=false;status('');
+ window.scrollTo(0,0);el('camera').focus({preventScroll:true});
+};
+el('resume').onclick=()=>{resultView();draw()};
+el('review').ontoggle=()=>{
+ if(el('review').open||!area)return;
+ addOverlap=false;labelMode=null;picking=false;first=null;showing=true;setZoom(false);draw()
+};
 function reset(name,isSample=false){
+ el('review').open=el('settings').open=el('cal').open=false;resultView();
  sample=isSample;boardLabels.clear();labelMode=null;loadLearning();setZoom(false);filename=name;board.width=source.width;board.height=source.height;area={x:0,y:0,w:source.width,h:source.height};
  snapshots=[];el('polarity').value='dark';el('sensitivity').value=3;el('level').textContent=3;recount()
 }
@@ -240,13 +249,13 @@ function demo(){
   }
   src.beginPath();src.ellipse(0,0,2,7,0,0,Math.PI*2);src.fill();src.restore()
  }
- reset('Illustrated yellow sheet',true);status('Sample with 800 drawn mosquitoes. Touching insects can share a ring. Magnify the sheet to review them.')
+ reset('Illustrated yellow sheet',true);status('')
 }
 el('native').onchange=el('photo').onchange=async e=>{
  const file=e.target.files[0];if(!file)return;const token=++sequence,url=URL.createObjectURL(file);
  try{status('Reading photo…');const img=new Image();img.src=url;await img.decode();if(token!==sequence)return;
   const scale=imageScale(img.naturalWidth,img.naturalHeight);source.width=Math.max(1,Math.round(img.naturalWidth*scale));source.height=Math.max(1,Math.round(img.naturalHeight*scale));
-  src.fillStyle='white';src.fillRect(0,0,source.width,source.height);src.drawImage(img,0,0,source.width,source.height);reset(file.name);status('Photo processed on this device. Review the rings before saving.')
+  src.fillStyle='white';src.fillRect(0,0,source.width,source.height);src.drawImage(img,0,0,source.width,source.height);reset(file.name);status('')
  }catch{if(token===sequence)status('Could not read this photo. Try a JPEG or PNG.')}finally{URL.revokeObjectURL(url);if(token===sequence)e.target.value=''}
 };
 el('demo').onclick=demo;el('detect').onclick=()=>{remember();recount();status('Recounted the selected area.')};
@@ -258,6 +267,7 @@ el('overlap').onclick=()=>{
 el('region').onclick=()=>{addOverlap=false;labelMode=null;picking=!picking;first=null;draw()};
 el('undo').onclick=()=>{const s=snapshots.pop();if(s){area=s.area;raw=candidates();points=s.points;baseline=s.baseline;first=null;picking=false;showing=true;draw()}};
 board.onclick=e=>{
+ if(!el('review').open)return;
  const box=board.getBoundingClientRect(),ratio=board.width/box.width,x=Math.min(board.width-1,Math.max(0,Math.floor((e.clientX-box.left)*ratio))),y=Math.min(board.height-1,Math.max(0,Math.floor((e.clientY-box.top)*board.height/box.height)));
  if(labelMode){
   const hit=nearestSpot(raw,x,y,ratio);if(!hit){status('Tap a circled candidate. Increase sensitivity to find fainter spots.');return}
@@ -328,14 +338,14 @@ el('camera').onclick=async()=>{
   const feed=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:'environment'},width:{ideal:3072},height:{ideal:2304}}});
   if(session!==cameraSession){feed.getTracks().forEach(t=>t.stop());return}
   stream=feed;video.srcObject=feed;await video.play();if(session!==cameraSession)return;
-  el('shutter').disabled=el('auto').disabled=false;el('cameraState').textContent='Capture now, or hold steady for automatic capture.'
+  el('shutter').disabled=el('auto').disabled=false;el('cameraState').textContent=''
  }catch{if(session===cameraSession){closeCamera();status('Live preview unavailable. Use your camera app and choose its photo here, or try the system camera.');el('fallback').hidden=false}}
 };
 el('fallback').onclick=()=>el('native').click();
 function captureFrame(){
  if(!video.videoWidth||!video.videoHeight)return;
  ++sequence;const scale=imageScale(video.videoWidth,video.videoHeight);source.width=Math.round(video.videoWidth*scale);source.height=Math.round(video.videoHeight*scale);
- src.drawImage(video,0,0,source.width,source.height);closeCamera();reset('Camera capture');status('Board captured. Magnify to check crowded patches and touching insects.')
+ src.drawImage(video,0,0,source.width,source.height);closeCamera();reset('Camera capture');status('')
 }
 el('shutter').onclick=captureFrame;
 el('auto').onclick=()=>{
@@ -350,5 +360,5 @@ el('auto').onclick=()=>{
   if(++attempts>=60){clearInterval(timer);timer=0;el('auto').disabled=false;el('cameraState').textContent='Still seeing movement. Capture manually or try again.'}
  },200)
 };
-window.addEventListener('resize',()=>{if(area)draw()});demo();
+window.addEventListener('resize',()=>{if(area)draw()});
 </script></body></html>
