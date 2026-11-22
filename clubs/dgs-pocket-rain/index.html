@@ -31,61 +31,76 @@
 
 <main>
 
+<!-- Every .scene is one screen. The page snaps to each one: flick, land, tick. -->
+
 <!-- ===== 0 · HELLO ===== -->
-<section id="hello" class="hello">
-  <img class="wash" data-art="hero-wash.webp" alt="">
-  <div class="sparkles" aria-hidden="true"></div>
-  <p class="kicker" data-zh="一個毛線小故事 · 關於共享基金會的飲用水項目">a little yarn story · about GX Foundation’s drinking-water project</p>
-  <h1 class="title"><span data-zh="袋裡的小水滴">Pocket Rain</span></h1>
-  <div class="stage" id="heroStage">
-    <div class="bubble" id="heroBubble" aria-live="polite"><span data-zh="嗨！我是小滴。按一下我～">Hi! I’m Pip. Give me a squish~</span></div>
-    <button class="plush big" id="heroPip" data-pip="hero" aria-label="Squish Pip, the crocheted raindrop" data-label-zh="按一按小滴，毛線水滴公仔"></button>
-    <div class="puddle" aria-hidden="true"></div>
-    <p class="hint"><span class="hand">👆</span> <span data-zh="按、拉、搓搓她">tap · drag · pet her</span></p>
+<section id="hello" class="hello" data-ch="0">
+  <div class="scene s-hero">
+    <img class="wash" data-art="hero-wash.webp" alt="">
+    <div class="sparkles" aria-hidden="true"></div>
+    <p class="kicker rv" data-zh="一個毛線小故事 · 關於共享基金會的飲用水項目">a little yarn story · about GX Foundation’s drinking-water project</p>
+    <h1 class="title rv"><span data-zh="袋裡的小水滴">Pocket Rain</span></h1>
+    <div class="stage rv" id="heroStage">
+      <div class="bubble" id="heroBubble" aria-live="polite"><span data-zh="嗨！我是小滴。按一下我～">Hi! I’m Pip. Give me a squish~</span></div>
+      <button class="plush big" id="heroPip" data-pip="hero" aria-label="Squish Pip, the crocheted raindrop" data-label-zh="按一按小滴，毛線水滴公仔"></button>
+      <div class="puddle" aria-hidden="true"></div>
+      <p class="hint"><span class="hand">👆</span> <span data-zh="按、拉、搓搓她">tap · drag · pet her</span></p>
+    </div>
+    <a href="#s-lede" class="swipe" aria-label="Next" data-label-zh="下一頁"><span class="chev">︿</span><span data-zh="向上滑">swipe up</span></a>
   </div>
-  <p class="lede"><span data-zh="同學們可以把我織成任何模樣。">They could have crocheted me into any shape.</span><br><em data-zh="為甚麼偏偏是一滴水？">So why a drop?</em></p>
-  <a href="#cups" class="follow"><span data-zh="跟著我的毛線走">follow my thread</span> <span class="bob">↓</span></a>
+  <div class="scene s-lede" id="s-lede">
+    <figure class="portrait rv"><img src="assets/pocket-rain.webp" width="1050" height="700" alt="Pip, a sky-blue crocheted raindrop, sitting in a little watercolor puddle." data-alt-zh="水彩畫：天藍色的毛線小水滴坐在一小灘水上。" loading="lazy"></figure>
+    <p class="lede rv"><span data-zh="同學們可以把我織成任何模樣。">They could have crocheted me into any shape.</span></p>
+    <p class="lede big rv"><em data-zh="為甚麼偏偏是一滴水？">So why a drop?</em></p>
+    <p class="follow rv"><span data-zh="跟著我的毛線走">follow my thread</span> <span class="bob">↓</span></p>
+  </div>
 </section>
 
 <!-- ===== 1 · TWO CUPS ===== -->
-<section id="cups" class="chapter cups">
-  <p class="chip" data-zh="第一章 · 兩個杯子">chapter 1 · two cups</p>
-  <h2><span data-zh="我們的攤位上，放著兩個紙杯。">At our school stall, there were two paper cups.</span></h2>
-  <p class="say" data-zh="一杯寫著「過濾水」，一杯寫著「自來水」。你會喝哪一杯？">One said <b>Filtered</b>. One said <b>Tap water</b>. Which one would you drink?</p>
-  <div class="cuprow" role="group" aria-label="Pick a cup" data-label-zh="選一杯">
-    <button class="papercup" data-cup="filtered"><img class="art" data-art="cup-filtered.png" alt=""><svg viewBox="0 0 120 150" aria-hidden="true"><use href="#cupArt"/></svg><span class="cuplabel" data-zh="過濾水">Filtered</span></button>
-    <button class="papercup" data-cup="tap"><img class="art" data-art="cup-tap.png" alt=""><svg viewBox="0 0 120 150" aria-hidden="true"><use href="#cupArt"/></svg><span class="cuplabel" data-zh="自來水">Tap water</span></button>
+<section id="cups" class="chapter cups" data-ch="1">
+  <div class="scene">
+    <p class="chip rv" data-zh="第一章 · 兩個杯子">chapter 1 · two cups</p>
+    <h2 class="rv"><span data-zh="我們的攤位上，放著兩個紙杯。">At our school stall, there were two paper cups.</span></h2>
+    <p class="say rv" data-zh="一杯寫著「過濾水」，一杯寫著「自來水」。你會喝哪一杯？">One said <b>Filtered</b>. One said <b>Tap water</b>. Which one would you drink?</p>
+    <div class="cuprow rv" role="group" aria-label="Pick a cup" data-label-zh="選一杯">
+      <button class="papercup" data-cup="filtered"><img class="art" data-art="cup-filtered.png" alt=""><svg viewBox="0 0 120 150" aria-hidden="true"><use href="#cupArt"/></svg><span class="cuplabel" data-zh="過濾水">Filtered</span></button>
+      <button class="papercup" data-cup="tap"><img class="art" data-art="cup-tap.png" alt=""><svg viewBox="0 0 120 150" aria-hidden="true"><use href="#cupArt"/></svg><span class="cuplabel" data-zh="自來水">Tap water</span></button>
+    </div>
+    <p class="nudge rv" data-zh="選一杯 ↑">tap one ↑</p>
   </div>
-  <figure class="polaroid tilt-l"><img data-art="photos/cups.jpg" alt="" loading="lazy"><figcaption data-zh="攤位上真正的兩隻杯">the real cups, at our real stall</figcaption></figure>
-  <div class="answer" id="cupAnswer" hidden>
-    <span class="mini" data-pip="mini"></span>
-    <p id="cupAnswerText"></p>
-  </div>
-  <div class="tds">
-    <figure class="polaroid tilt-r small"><img data-art="photos/tds.jpg" alt="" loading="lazy"><figcaption data-zh="我們的 TDS 測試筆 ✧">our TDS meters ✧</figcaption></figure>
-    <p class="say small" data-zh="我們還帶了 TDS 測試筆——一枝小筆，可以量出水裡溶了多少東西。在香港，我們可以拿兩杯水來玩「猜猜看」。">We even brought TDS meters — little pens that measure how much stuff is dissolved in water. In Hong Kong, two cups of water can be a guessing game.</p>
-    <p class="say small tdsread" id="tdsRead" hidden></p>
+  <div class="scene" id="s-answer">
+    <div class="answer rv" id="cupAnswer">
+      <span class="mini" data-pip="mini"></span>
+      <p id="cupAnswerText"></p>
+    </div>
+    <p class="say small rv" data-zh="我們還帶了 TDS 測試筆——一枝小筆，可以量出水裡溶了多少東西。在香港，兩杯水可以拿來玩「猜猜看」。">We even brought TDS meters — little pens that measure what’s dissolved in water. In Hong Kong, two cups of water can be a guessing game.</p>
+    <p class="say small tdsread rv" id="tdsRead" hidden></p>
   </div>
 </section>
 
 <!-- ===== 2 · HONG KONG RAIN ===== -->
-<section id="rain" class="chapter rain">
-  <img class="sticker st-umbrella" src="assets/sticker-umbrella.png" alt="" data-optional>
-  <p class="chip" data-zh="第二章 · 在這裡，雨只是天氣">chapter 2 · here, rain is just weather</p>
-  <h2><span data-zh="在香港，雨後的一滴水">In Hong Kong, the rain just hangs</span><br><em data-zh="掛在細細的草尖上。">on a thread of grass.</em></h2>
-  <div class="rainbox" id="rainBox">
-    <img class="scene" src="assets/after-rain.webp" width="1400" height="934" alt="Raindrops on blades of grass after a Hong Kong shower, in watercolor." data-alt-zh="水彩畫：香港雨後，水珠掛在草尖上。">
-    <button class="cloud c1" aria-label="Tap the cloud to make it rain" data-label-zh="按雲朵下雨"><img class="art" data-art="cloud-1.png" alt=""><svg viewBox="0 0 120 70" aria-hidden="true"><use href="#cloudArt"/></svg></button>
-    <button class="cloud c2" aria-label="Tap the cloud to make it rain" data-label-zh="按雲朵下雨"><img class="art" data-art="cloud-2.png" alt=""><svg viewBox="0 0 120 70" aria-hidden="true"><use href="#cloudArt"/></svg></button>
-    <button class="cloud c3" aria-label="Tap the cloud to make it rain" data-label-zh="按雲朵下雨"><img class="art" data-art="cloud-3.png" alt=""><svg viewBox="0 0 120 70" aria-hidden="true"><use href="#cloudArt"/></svg></button>
-    <p class="raincount" aria-live="polite"><span data-zh="按雲朵下雨">tap the clouds</span> · <b id="rainN">0</b> <span data-zh="滴">drops</span></p>
+<section id="rain" class="chapter rain" data-ch="2">
+  <div class="scene">
+    <img class="sticker st-umbrella" src="assets/sticker-umbrella.png" alt="" data-optional>
+    <p class="chip rv" data-zh="第二章 · 在這裡，雨只是天氣">chapter 2 · here, rain is just weather</p>
+    <h2 class="rv"><span data-zh="在香港，雨後的一滴水">In Hong Kong, the rain just hangs</span><br><em data-zh="掛在細細的草尖上。">on a thread of grass.</em></h2>
+    <div class="rainbox rv" id="rainBox">
+      <img class="scenery" src="assets/after-rain.webp" width="1400" height="934" alt="Raindrops on blades of grass after a Hong Kong shower, in watercolor." data-alt-zh="水彩畫：香港雨後，水珠掛在草尖上。">
+      <button class="cloud c1" aria-label="Tap the cloud to make it rain" data-label-zh="按雲朵下雨"><img class="art" data-art="cloud-1.png" alt=""><svg viewBox="0 0 120 70" aria-hidden="true"><use href="#cloudArt"/></svg></button>
+      <button class="cloud c2" aria-label="Tap the cloud to make it rain" data-label-zh="按雲朵下雨"><img class="art" data-art="cloud-2.png" alt=""><svg viewBox="0 0 120 70" aria-hidden="true"><use href="#cloudArt"/></svg></button>
+      <button class="cloud c3" aria-label="Tap the cloud to make it rain" data-label-zh="按雲朵下雨"><img class="art" data-art="cloud-3.png" alt=""><svg viewBox="0 0 120 70" aria-hidden="true"><use href="#cloudArt"/></svg></button>
+    </div>
+    <p class="raincount rv" aria-live="polite"><span data-zh="按雲朵下雨">tap the clouds</span> · <b id="rainN">0</b> <span data-zh="滴">drops</span></p>
   </div>
-  <p class="say" data-zh="這裡沒有人會為一滴雨擔心。水龍頭一扭，水就來了——世上最沉悶的魔術。">Nobody here worries about a raindrop. Twist a tap and water appears — the most boring magic trick in the world.</p>
-  <p class="say soft" data-zh="可是我一直在想：有沒有一個地方，這個魔術一點也不沉悶？"><em>But I kept wondering: is there somewhere this magic trick isn’t boring at all?</em></p>
+  <div class="scene">
+    <p class="say big rv" data-zh="這裡沒有人會為一滴雨擔心。水龍頭一扭，水就來了——世上最沉悶的魔術。">Nobody here worries about a raindrop. Twist a tap and water appears — the most boring magic trick in the world.</p>
+    <p class="say big soft rv" data-zh="可是我一直在想：有沒有一個地方，這個魔術一點也不沉悶？"><em>But I kept wondering: is there somewhere this magic trick isn’t boring at all?</em></p>
+  </div>
 </section>
 
-<!-- ===== 3 · THE JOURNEY ===== -->
-<section id="journey" class="journey">
+<!-- ===== 3 · THE JOURNEY (five snap stops along the yarn) ===== -->
+<section id="journey" class="journey" data-ch="3">
+  <i class="stop" style="--k:0"></i><i class="stop" style="--k:1"></i><i class="stop" style="--k:2"></i><i class="stop" style="--k:3"></i><i class="stop" style="--k:4"></i>
   <div class="sticky">
     <p class="chip" data-zh="第三章 · 一直往南">chapter 3 · south, and further south</p>
     <h2 class="jhead"><span data-zh="於是我拉著自己的毛線，">So I unravelled my yarn</span><br><em data-zh="一直往南走了大約 3,600 公里。">and followed it about 3,600 km south.</em></h2>
@@ -95,7 +110,6 @@
         <defs><pattern id="wave" width="24" height="12" patternUnits="userSpaceOnUse"><path d="M0 6q6-5 12 0t12 0" fill="none" stroke="#bcd8f2" stroke-width="1.4"/></pattern></defs>
         <g class="mapbase"><rect width="400" height="300" rx="26" fill="#e8f3fd"/>
         <rect width="400" height="300" rx="26" fill="url(#wave)" opacity=".9"/>
-        <!-- stylised land: China coast + HK, Philippines, Borneo, Sulawesi, Timor -->
         <path class="land" d="M0 0h190q-6 18-30 22t-38 16q-18 8-40 6T40 60Q18 70 0 66Z"/>
         <path class="land" d="M262 60q10-6 16 4t2 26q-4 18 6 30t-2 24q-12-4-16-20t-10-30q-6-22 4-34Z"/>
         <path class="land" d="M120 150q20-16 46-10t34 26q4 24-14 38t-44 6q-26-12-28-34t6-26Z"/>
@@ -111,134 +125,166 @@
       <span class="traveller" data-pip="traveller"></span>
     </div>
     <p class="jnote" id="jNote" aria-live="polite" data-zh="繼續往下滑 ↓">keep scrolling ↓</p>
+    <div class="jdots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
   </div>
 </section>
 
 <!-- ===== 4 · MURKY WATER ===== -->
-<section id="murky" class="chapter murky">
-  <p class="chip" data-zh="第四章 · 要想一想的水">chapter 4 · water you have to wonder about</p>
-  <h2><span data-zh="在東帝汶，">In Timor-Leste,</span><br><em data-zh="很多水是要先想一想，才敢喝的。">a lot of water makes you stop and wonder.</em></h2>
-  <div class="factcard">
-    <b class="big">70%</b>
-    <p data-zh="的地表水受到污染（共享基金會資料）。河水、溪水看起來可能很清，但未必能喝。">of surface water there is polluted, according to GX Foundation. A stream can look clear and still make someone sick.</p>
-  </div>
-  <div class="jarzone">
-    <img class="sceneopt" src="assets/murky-river.webp" alt="" data-optional>
-    <div class="jar" id="jar">
-      <img class="art murkyart" data-art="jar-murky.png" alt=""><img class="art clearart" data-art="jar-clear.png" alt="">
-      <svg viewBox="0 0 200 240" aria-hidden="true">
-        <defs><clipPath id="jarClip"><path d="M44 54h112q10 0 10 12v138q0 24-24 24H58q-24 0-24-24V66q0-12 10-12Z"/></clipPath></defs>
-        <g clip-path="url(#jarClip)">
-          <rect x="0" y="0" width="200" height="240" fill="#fffdf8"/>
-          <g class="jarwater"><path d="M0 92q25-10 50 0t50 0 50 0 50 0v150H0Z"/></g>
-          <g class="specks"></g>
-        </g>
-        <path d="M44 54h112q10 0 10 12v138q0 24-24 24H58q-24 0-24-24V66q0-12 10-12Z" fill="none" stroke="#7d8db8" stroke-width="4"/>
-        <rect x="52" y="30" width="96" height="26" rx="9" fill="#f6d9e6" stroke="#7d8db8" stroke-width="4"/>
-        <path d="M58 80v100" stroke="#fff" stroke-width="7" stroke-linecap="round" opacity=".7"/>
-      </svg>
-      <span class="jarsparkle" aria-hidden="true">✦</span>
+<section id="murky" class="chapter murky" data-ch="4">
+  <div class="scene bleed">
+    <img class="bleedimg" data-art="murky-river.webp" alt="">
+    <p class="chip rv" data-zh="第四章 · 要想一想的水">chapter 4 · water you have to wonder about</p>
+    <h2 class="rv"><span data-zh="在東帝汶，">In Timor-Leste,</span><br><em data-zh="很多水是要先想一想，才敢喝的。">a lot of water makes you stop and wonder.</em></h2>
+    <div class="factcard rv">
+      <b class="big">70%</b>
+      <p data-zh="的地表水受到污染（共享基金會資料）。河水、溪水看起來可能很清，但未必能喝。">of surface water there is polluted, according to GX Foundation. A stream can look clear and still make someone sick.</p>
     </div>
-    <button class="bigbtn" id="cleanBtn"><span data-zh="放進淨水機 ✨">Run it through a purifier ✨</span></button>
-    <p class="say small" id="jarText" aria-live="polite" data-zh="淨水機用納米科技，把不安全的水變成可以直接喝的水。">GX’s machines use nanotechnology filters to turn unsafe water into water you can drink straight away.</p>
+  </div>
+  <div class="scene">
+    <div class="jarzone">
+      <div class="jar rv" id="jar">
+        <img class="art murkyart" data-art="jar-murky.png" alt=""><img class="art clearart" data-art="jar-clear.png" alt="">
+        <svg viewBox="0 0 200 240" aria-hidden="true">
+          <defs><clipPath id="jarClip"><path d="M44 54h112q10 0 10 12v138q0 24-24 24H58q-24 0-24-24V66q0-12 10-12Z"/></clipPath></defs>
+          <g clip-path="url(#jarClip)">
+            <rect x="0" y="0" width="200" height="240" fill="#fffdf8"/>
+            <g class="jarwater"><path d="M0 92q25-10 50 0t50 0 50 0 50 0v150H0Z"/></g>
+            <g class="specks"></g>
+          </g>
+          <path d="M44 54h112q10 0 10 12v138q0 24-24 24H58q-24 0-24-24V66q0-12 10-12Z" fill="none" stroke="#7d8db8" stroke-width="4"/>
+          <rect x="52" y="30" width="96" height="26" rx="9" fill="#f6d9e6" stroke="#7d8db8" stroke-width="4"/>
+          <path d="M58 80v100" stroke="#fff" stroke-width="7" stroke-linecap="round" opacity=".7"/>
+        </svg>
+        <span class="jarsparkle" aria-hidden="true">✦</span>
+      </div>
+      <button class="bigbtn rv" id="cleanBtn"><span data-zh="放進淨水機 ✨">Run it through a purifier ✨</span></button>
+      <p class="say small rv" id="jarText" aria-live="polite" data-zh="淨水機用納米科技，把不安全的水變成可以直接喝的水。">GX’s machines use nanotechnology filters to turn unsafe water into water you can drink straight away.</p>
+    </div>
   </div>
 </section>
 
 <!-- ===== 5 · THE CUP ===== -->
-<section id="cup" class="chapter cupch">
-  <img class="sticker st-flower" src="assets/sticker-flower.png" alt="" data-optional>
-  <p class="chip" data-zh="第五章 · 有人在等">chapter 5 · someone is waiting</p>
-  <h2><span data-zh="就在那裡，">And there,</span><br><em data-zh="有人伸出杯子，等著盛水。">someone was holding out a cup.</em></h2>
-  <figure class="painting"><img src="assets/next-cup.webp" width="1250" height="834" loading="lazy" alt="A child fills a blue cup at a water point beside their family, in watercolor." data-alt-zh="水彩畫：小孩在家人身旁的取水點盛水。"></figure>
-  <div class="fillzone">
-    <div class="glass" id="glass" aria-hidden="true">
-      <img class="art emptyart" data-art="glass-empty.png" alt=""><img class="art fullart" data-art="glass-full.png" alt="">
-      <svg viewBox="0 0 120 160">
-        <defs><clipPath id="glassClip"><path d="M18 14h84l-10 132q-1 8-9 8H37q-8 0-9-8Z"/></clipPath></defs>
-        <g clip-path="url(#glassClip)">
-          <rect width="120" height="160" fill="#fffdf9"/>
-          <g class="level"><path class="wv" d="M-120 0q15-6 30 0t30 0 30 0 30 0 30 0 30 0 30 0 30 0 30 0v200h-270Z"/></g>
-        </g>
-        <path d="M18 14h84l-10 132q-1 8-9 8H37q-8 0-9-8Z" fill="none" stroke="#6f86b8" stroke-width="4" stroke-linejoin="round"/>
-        <path d="M30 30l6 100" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".8"/>
-      </svg>
-      <div class="stream"></div>
+<section id="cup" class="chapter cupch" data-ch="5">
+  <div class="scene">
+    <img class="sticker st-flower" src="assets/sticker-flower.png" alt="" data-optional>
+    <p class="chip rv" data-zh="第五章 · 有人在等">chapter 5 · someone is waiting</p>
+    <h2 class="rv"><span data-zh="就在那裡，">And there,</span><br><em data-zh="有人伸出杯子，等著盛水。">someone was holding out a cup.</em></h2>
+    <figure class="painting rv"><img src="assets/next-cup.webp" width="1250" height="834" loading="lazy" alt="A child fills a blue cup at a water point beside their family, in watercolor." data-alt-zh="水彩畫：小孩在家人身旁的取水點盛水。"></figure>
+  </div>
+  <div class="scene">
+    <div class="fillzone">
+      <div class="glass rv" id="glass" aria-hidden="true">
+        <img class="art emptyart" data-art="glass-empty.png" alt=""><img class="art fullart" data-art="glass-full.png" alt="">
+        <svg viewBox="0 0 120 160">
+          <defs><clipPath id="glassClip"><path d="M18 14h84l-10 132q-1 8-9 8H37q-8 0-9-8Z"/></clipPath></defs>
+          <g clip-path="url(#glassClip)">
+            <rect width="120" height="160" fill="#fffdf9"/>
+            <g class="level"><path class="wv" d="M-120 0q15-6 30 0t30 0 30 0 30 0 30 0 30 0 30 0 30 0 30 0v200h-270Z"/></g>
+          </g>
+          <path d="M18 14h84l-10 132q-1 8-9 8H37q-8 0-9-8Z" fill="none" stroke="#6f86b8" stroke-width="4" stroke-linejoin="round"/>
+          <path d="M30 30l6 100" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".8"/>
+        </svg>
+        <div class="stream"></div>
+      </div>
+      <button class="bigbtn hold rv" id="holdBtn"><span class="fillbar"></span><span class="lbl" data-zh="連按幾下，盛滿一杯水">Tap tap tap to fill the cup</span></button>
+      <p class="say small rv" id="fillText" aria-live="polite"></p>
     </div>
-    <button class="bigbtn hold" id="holdBtn"><span class="fillbar"></span><span class="lbl" data-zh="按住，盛一杯水">Press &amp; hold to fill the cup</span></button>
-    <p class="say small" id="fillText" aria-live="polite"></p>
   </div>
 </section>
 
 <!-- ===== 6 · ONE HUNDRED ===== -->
-<section id="hundred" class="chapter hundred">
-  <p class="chip" data-zh="第六章 · 一台，再一台">chapter 6 · one, then another</p>
-  <h2><span data-zh="2024 年 7 月，共享基金會在東帝汶">In July 2024, GX Foundation launched its</span><br><em data-zh="啟動「直接飲用水項目」。">Direct Potable Water Project in Timor-Leste.</em></h2>
-  <img class="sceneopt wide" src="assets/water-machine.webp" alt="" data-optional>
-  <p class="say" data-zh="一百顆水滴，每顆代表一台淨水機。逐顆按亮它們吧（或者用手指一掃）。">Here are 100 drops — one for each water purification machine. Tap them on, or swipe across them.</p>
-  <div class="dropgrid" id="dropGrid" role="group" aria-label="100 drops, one per machine" data-label-zh="一百顆水滴，每顆代表一台淨水機"></div>
-  <p class="tally" aria-live="polite"><b id="litN">0</b> / 100 <span data-zh="台淨水機">machines</span> <button class="linkbtn" id="allBtn" data-zh="全部亮起">light them all</button></p>
-  <div class="stats" id="stats">
-    <div class="stat s1"><span class="emoji">💧</span><img class="art icon" data-art="icon-water.png" alt=""><b data-count="400000">0</b><p data-zh="加侖免費直接飲用水（預計每年）">gallons of free drinking water a year (projected)</p></div>
-    <div class="stat s2"><span class="emoji">🪙</span><img class="art icon" data-art="icon-coins.png" alt=""><b data-count="800000" data-prefix="US$">0</b><p data-zh="為當地節省的購買飲用水開支">saved on buying drinking water locally</p></div>
-    <div class="stat s3"><span class="emoji">🧴</span><img class="art icon" data-art="icon-bottles.png" alt=""><b data-count="3000000">0</b><p data-zh="個塑膠瓶，可以少用">plastic bottles that don’t need to be used</p></div>
+<section id="hundred" class="chapter hundred" data-ch="6">
+  <div class="scene bleed">
+    <img class="bleedimg" data-art="water-machine.webp" alt="">
+    <p class="chip rv" data-zh="第六章 · 一台，再一台">chapter 6 · one, then another</p>
+    <h2 class="rv"><span data-zh="2024 年 7 月，共享基金會在東帝汶">In July 2024, GX Foundation launched its</span><br><em data-zh="啟動「直接飲用水項目」。">Direct Potable Water Project in Timor-Leste.</em></h2>
+    <p class="say rv" data-zh="試點是東帝汶全部的教堂、全部的醫院，和部份學校——大家本來就會去的地方。">The pilot sites were all the churches, all the hospitals and some schools in Timor-Leste — places people already go.</p>
   </div>
-  <p class="where" data-zh="試點是東帝汶全部的教堂、全部的醫院，和部份學校——大家本來就會去的地方。">The pilot sites were all the churches, all the hospitals and some schools in Timor-Leste — places people already go.</p>
-  <div class="polarow"><figure class="polaroid tilt-l small"><img data-art="photos/banner-stats.jpg" alt="" loading="lazy"><figcaption data-zh="攤位上共享基金會的展板">GX’s banner at our stall</figcaption></figure><figure class="polaroid tilt-r small"><img data-art="photos/banner-habitat.jpg" alt="" loading="lazy"><figcaption data-zh="「人居環境」">“Habitat” · 人居環境</figcaption></figure></div>
-  <p class="source"><span data-zh="數字來自共享基金會的展板和網站，部份為預計數字。">Figures from GX Foundation’s banner and website; some are projections.</span> <a href="https://gxfoundation.hk/en/programmes/detail/habitat" target="_blank" rel="noopener" data-zh="看看項目介紹 ↗">Read the project page ↗</a></p>
+  <div class="scene" id="s-grid">
+    <p class="say rv" data-zh="一百顆水滴，每顆代表一台淨水機。用手指一掃，把它們點亮。">100 drops — one for each water purification machine. Swipe across them to light them up.</p>
+    <div class="dropgrid rv" id="dropGrid" role="group" aria-label="100 drops, one per machine" data-label-zh="一百顆水滴，每顆代表一台淨水機"></div>
+    <p class="tally rv" aria-live="polite"><b id="litN">0</b> / 100 <span data-zh="台淨水機">machines</span> <button class="linkbtn" id="allBtn" data-zh="全部亮起">light them all</button></p>
+  </div>
+  <div class="scene" id="s-stats">
+    <div class="stats" id="stats">
+      <div class="stat s1 rv"><span class="emoji">💧</span><img class="art icon" data-art="icon-water.png" alt=""><b data-count="400000">0</b><p data-zh="加侖免費直接飲用水（預計每年）">gallons of free drinking water a year (projected)</p></div>
+      <div class="stat s2 rv"><span class="emoji">🪙</span><img class="art icon" data-art="icon-coins.png" alt=""><b data-count="800000" data-prefix="US$">0</b><p data-zh="為當地節省的購買飲用水開支">saved on buying drinking water locally</p></div>
+      <div class="stat s3 rv"><span class="emoji">🧴</span><img class="art icon" data-art="icon-bottles.png" alt=""><b data-count="3000000">0</b><p data-zh="個塑膠瓶，可以少用">plastic bottles that don’t need to be used</p></div>
+    </div>
+    <p class="source rv"><span data-zh="數字來自共享基金會的展板和網站，部份為預計數字。">Figures from GX Foundation’s banner and website; some are projections.</span> <a href="https://gxfoundation.hk/en/programmes/detail/habitat" target="_blank" rel="noopener" data-zh="看看項目介紹 ↗">Read the project page ↗</a></p>
+  </div>
 </section>
 
 <!-- ===== 7 · WHY A DROP ===== -->
-<section id="why" class="chapter why">
-  <p class="chip" data-zh="第七章 · 為甚麼是一滴水">chapter 7 · so, why a drop?</p>
-  <h2><span data-zh="因為一滴水，是很大的東西裡">Because a drop is the smallest piece</span><br><em data-zh="最小的那一塊。">of something very big.</em></h2>
-  <p class="say" data-zh="一滴水裝不滿一隻杯。一百台淨水機可以。而一個掛在書包上的小水滴，可以提醒你，這一切由一個問題開始：「你會喝哪一杯？」">One drop can’t fill a cup. A hundred machines can. And one little drop on your schoolbag can remind you how it all started — with a question: <em>“which cup would you drink?”</em></p>
-  <figure class="cinema"><img data-art="photos/drops-crowd.jpg" alt="Dozens of crocheted water-drop keychains in every shade of blue, packed into a tinsel-lined box." loading="lazy"><figcaption data-zh="每一顆都有點不同：有的圓、有的尖、有的有點歪。每一顆都是同學親手鈎的。">Every one is a little different — round, pointy, a bit lopsided. Every one crocheted by hand.</figcaption></figure>
-  <figure class="painting stall"><img src="assets/stall.webp" width="1000" height="667" loading="lazy" alt="A watercolor of the club’s tinsel-trimmed box of crocheted drops, beside two cups labelled Filtered and Tap water." data-alt-zh="水彩畫：閃帶裝飾的盒子裡擠滿毛線小水滴，旁邊是「過濾水」和「自來水」兩個杯。"></figure>
+<section id="why" class="chapter why" data-ch="7">
+  <div class="scene">
+    <p class="chip rv" data-zh="第七章 · 為甚麼是一滴水">chapter 7 · so, why a drop?</p>
+    <h2 class="rv"><span data-zh="因為一滴水，是很大的東西裡">Because a drop is the smallest piece</span><br><em data-zh="最小的那一塊。">of something very big.</em></h2>
+    <p class="say rv" data-zh="一滴水裝不滿一隻杯。一百台淨水機可以。而一個掛在書包上的小水滴，可以提醒你，這一切由一個問題開始：「你會喝哪一杯？」">One drop can’t fill a cup. A hundred machines can. And one little drop on your schoolbag can remind you how it all started — with a question: <em>“which cup would you drink?”</em></p>
+  </div>
+  <div class="scene full">
+    <figure class="cinema"><img data-art="photos/drops-crowd.jpg" alt="Dozens of crocheted water-drop keychains in every shade of blue, packed into a tinsel-lined box." loading="lazy"><figcaption class="rv" data-zh="每一顆都有點不同：有的圓、有的尖、有的有點歪。每一顆都是同學親手鈎的。">Every one is a little different — round, pointy, a bit lopsided. Every one crocheted by hand.</figcaption></figure>
+  </div>
+  <div class="scene">
+    <figure class="painting stall rv"><img src="assets/stall.webp" width="1000" height="667" loading="lazy" alt="A watercolor of the club’s tinsel-trimmed box of crocheted drops, beside two cups labelled Filtered and Tap water." data-alt-zh="水彩畫：閃帶裝飾的盒子裡擠滿毛線小水滴，旁邊是「過濾水」和「自來水」兩個杯。"></figure>
+  </div>
+  <div class="scene">
+    <figure class="polaroid tilt-r rv"><img data-art="photos/crest.jpg" alt="The DGS school crest crocheted in navy and white, framed, with two crocheted drops hanging from the frame." loading="lazy"><figcaption data-zh="我們連校徽也鈎了出來">we crocheted our school crest too</figcaption></figure>
+    <p class="say rv" data-zh="一針一針，一個學會，一間學校。">Stitch by stitch. One club, one school.</p>
+  </div>
 </section>
 
 <!-- ===== 8 · ADOPT ===== -->
-<section id="adopt" class="chapter adopt">
-  <div class="polarow top"><figure class="polaroid tilt-l small"><img data-art="photos/stall-sign.jpg" alt="" loading="lazy"><figcaption data-zh="我們的攤位牌 ♡">our stall sign ♡</figcaption></figure><figure class="polaroid tilt-r small"><img data-art="photos/crest.jpg" alt="" loading="lazy"><figcaption data-zh="我們連校徽也鈎了出來">we crocheted our school crest too</figcaption></figure></div>
-  <img class="sticker st-yarn" src="assets/sticker-yarn.png" alt="" data-optional>
-  <p class="chip" data-zh="最後一章 · 回到書包">last chapter · back to the schoolbag</p>
-  <h2><span data-zh="選一顆，帶她回家。">Pick one. Take her home.</span></h2>
-  <div class="adoptgrid">
-    <div class="bagstage" id="bagStage">
-      <img class="art bagart" data-art="schoolbag.png" alt="">
-      <svg class="bagsvg" viewBox="0 0 260 300" aria-hidden="true">
-        <path d="M86 70q0-46 44-46t44 46" fill="none" stroke="#2f3f6e" stroke-width="14" stroke-linecap="round"/>
-        <rect x="30" y="64" width="200" height="220" rx="38" fill="#3d5089"/>
-        <rect x="30" y="64" width="200" height="90" rx="38" fill="#4a5f9c"/>
-        <rect x="58" y="170" width="144" height="88" rx="22" fill="#4a5f9c"/>
-        <path d="M58 200h144" stroke="#f7c9d8" stroke-width="3" stroke-dasharray="6 6"/>
-        <circle cx="130" cy="150" r="7" fill="#e7ecf8"/>
-        <rect x="200" y="98" width="16" height="30" rx="8" fill="#2f3f6e"/>
-      </svg>
-      <div class="dangle" id="dangle"><span class="chain"></span><span data-pip="bag"></span></div>
-    </div>
-    <div class="picker">
-      <p class="pk" data-zh="選毛線顏色">pick her yarn</p>
-      <div class="swatches" role="radiogroup" aria-label="Yarn colour" data-label-zh="毛線顏色">
-        <button class="sw" role="radio" aria-checked="true" data-color="sky" style="--c:#86b9ee"><span data-zh="天空藍">sky</span></button>
-        <button class="sw" role="radio" aria-checked="false" data-color="cornflower" style="--c:#7f98de"><span data-zh="矢車菊藍">cornflower</span></button>
-        <button class="sw" role="radio" aria-checked="false" data-color="powder" style="--c:#aac6dc"><span data-zh="粉霧藍">powder</span></button>
-        <button class="sw" role="radio" aria-checked="false" data-color="seafoam" style="--c:#c3e2df"><span data-zh="海沫綠">seafoam</span></button>
+<section id="adopt" class="chapter adopt" data-ch="8">
+  <div class="scene">
+    <img class="sticker st-yarn" src="assets/sticker-yarn.png" alt="" data-optional>
+    <p class="chip rv" data-zh="最後一章 · 回到書包">last chapter · back to the schoolbag</p>
+    <h2 class="rv"><span data-zh="選一顆，帶她回家。">Pick one. Take her home.</span></h2>
+    <div class="adoptgrid rv">
+      <div class="bagstage" id="bagStage">
+        <img class="art bagart" data-art="schoolbag.png" alt="">
+        <svg class="bagsvg" viewBox="0 0 260 300" aria-hidden="true">
+          <path d="M86 70q0-46 44-46t44 46" fill="none" stroke="#2f3f6e" stroke-width="14" stroke-linecap="round"/>
+          <rect x="30" y="64" width="200" height="220" rx="38" fill="#3d5089"/>
+          <rect x="30" y="64" width="200" height="90" rx="38" fill="#4a5f9c"/>
+          <rect x="58" y="170" width="144" height="88" rx="22" fill="#4a5f9c"/>
+          <path d="M58 200h144" stroke="#f7c9d8" stroke-width="3" stroke-dasharray="6 6"/>
+          <circle cx="130" cy="150" r="7" fill="#e7ecf8"/>
+          <rect x="200" y="98" width="16" height="30" rx="8" fill="#2f3f6e"/>
+        </svg>
+        <div class="dangle" id="dangle"><span class="chain"></span><span data-pip="bag"></span></div>
       </div>
-      <label class="pk" for="pipName" data-zh="幫她改個名字">give her a name</label>
-      <input id="pipName" maxlength="14" placeholder="Pip" autocomplete="off">
-      <button class="bigbtn adoptbtn" id="adoptBtn"><span data-zh="帶她回家">Take her home</span> · HK$50</button>
-      <p class="fine" data-zh="在學校攤位領取 · 這裡只是預覽，不會收款。">Collect at the DGS GX Club stall · this page is a preview, no payment is taken.</p>
+      <div class="picker">
+        <div class="swatches" role="radiogroup" aria-label="Yarn colour" data-label-zh="毛線顏色">
+          <button class="sw" role="radio" aria-checked="true" data-color="sky" style="--c:#86b9ee"><span data-zh="天空藍">sky</span></button>
+          <button class="sw" role="radio" aria-checked="false" data-color="cornflower" style="--c:#7f98de"><span data-zh="矢車菊藍">cornflower</span></button>
+          <button class="sw" role="radio" aria-checked="false" data-color="powder" style="--c:#aac6dc"><span data-zh="粉霧藍">powder</span></button>
+          <button class="sw" role="radio" aria-checked="false" data-color="seafoam" style="--c:#c3e2df"><span data-zh="海沫綠">seafoam</span></button>
+        </div>
+        <input id="pipName" maxlength="14" placeholder="give her a name ✎" data-ph-zh="幫她改個名字 ✎" autocomplete="off" aria-label="Name your drop">
+        <button class="bigbtn adoptbtn" id="adoptBtn"><span data-zh="帶她回家">Take her home</span> · HK$50</button>
+        <p class="fine" data-zh="在學校攤位領取 · 這裡只是預覽，不會收款。">Collect at the DGS GX Club stall · preview only, no payment taken.</p>
+      </div>
     </div>
+  </div>
+  <div class="scene">
+    <figure class="painting clasp rv"><img src="assets/schoolbag.webp" alt="Fingers clipping a little crocheted blue drop onto the zip of a sage-green schoolbag, beside a refillable bottle." data-alt-zh="水彩畫：手指把毛線小水滴扣在淺綠色書包的拉鍊上，旁邊是一個可重用水樽。" loading="lazy"></figure>
+    <p class="lede big rv"><em data-zh="「咔嚓。」">click.</em></p>
   </div>
 </section>
 
 <!-- ===== END ===== -->
-<section class="ending">
-  <p class="endline"><span data-zh="下次伸手拿書包時，">Next time you reach for your schoolbag,</span><br><em data-zh="願你想起那隻遞出杯子的小手。">remember the hand that held out a cup.</em></p>
-  <img class="sceneopt endart" src="assets/ending-hands.webp" alt="" data-optional>
-  <button class="plush small" data-pip="end" aria-label="Wave goodbye to Pip" data-label-zh="跟小滴說再見"></button>
-  <p class="sign">♡ <span data-zh="拔萃女書院 GX 學會">DGS GX Club</span></p>
-  <p class="credits"><span data-zh="小水滴由同學們親手鈎織。">Every drop is crocheted by hand by club members.</span> <a href="#hello" data-zh="再見一次小滴 ↑">say hi to Pip again ↑</a></p>
+<section class="ending" data-ch="9">
+  <div class="scene">
+    <img class="sceneopt endart rv" src="assets/ending-hands.webp" alt="" data-optional>
+    <p class="endline rv"><span data-zh="下次伸手拿書包時，">Next time you reach for your schoolbag,</span><br><em data-zh="願你想起那隻遞出杯子的小手。">remember the hand that held out a cup.</em></p>
+  </div>
+  <div class="scene">
+    <button class="plush small rv" data-pip="end" aria-label="Wave goodbye to Pip" data-label-zh="跟小滴說再見"></button>
+    <p class="sign rv">♡ <span data-zh="拔萃女書院 GX 學會">DGS GX Club</span></p>
+    <p class="credits rv"><span data-zh="每一顆小水滴都由同學們親手鈎織。">Every drop is crocheted by hand by club members.</span></p>
+    <a class="bigbtn ghost again rv" href="#hello" data-zh="再見一次小滴 ↑">say hi to Pip again ↑</a>
+  </div>
 </section>
 
 </main>

@@ -23,6 +23,7 @@ function language() {
   copy.forEach(([el, en]) => { el.innerHTML = zh ? el.dataset.zh : en });
   labels.forEach(([el, en]) => el.setAttribute('aria-label', zh ? el.dataset.labelZh : en));
   alts.forEach(([el, en]) => { el.alt = zh ? el.dataset.altZh : en });
+  $$('[data-ph-zh]').forEach(el => { el.dataset.phEn ||= el.placeholder; el.placeholder = zh ? el.dataset.phZh : el.dataset.phEn });
   $('#lang').textContent = zh ? 'EN' : '繁中';
   $('#lang').setAttribute('aria-label', zh ? 'Switch to English' : '切換至繁體中文');
   relang.forEach(f => f());
@@ -59,6 +60,39 @@ function paintSound() {
 }
 $('#soundBtn').onclick = () => { soundOn = !soundOn; save('pocket-sound', soundOn ? 'on' : 'off'); paintSound(); sfx.pop(800) };
 relang.push(paintSound);
+
+/* ------------------------------------------------------------------ score: every tap earns drops 💧 */
+let score = parseInt(read('pocket-score'), 10) || 0;
+const scoreEl = document.createElement('button');
+scoreEl.className = 'pill score'; scoreEl.setAttribute('aria-live', 'polite');
+scoreEl.innerHTML = '💧 <b>0</b>';
+$('.top nav').prepend(scoreEl);
+const MILESTONES = [
+  [10, 'First 10 drops! You’re a natural 💧', '已收集 10 滴！你好有天份 💧'],
+  [50, '50 drops! Pip is doing a happy wiggle', '50 滴！小滴開心到搖來搖去'],
+  [100, '100 drops — one for every machine ✨', '100 滴——一台淨水機一滴 ✨'],
+  [250, '250! You’re basically a rain cloud now ☁️', '250 滴！你已經是一朵雨雲了 ☁️'],
+  [500, '500 drops. Legendary. 👑', '500 滴。傳說級。👑'],
+];
+function paintScore() { $('b', scoreEl).textContent = score.toLocaleString('en-US'); scoreEl.setAttribute('aria-label', tr(`${score} drops collected`, `已收集 ${score} 滴`)) }
+const toast = document.createElement('div'); toast.className = 'toast'; toast.setAttribute('role', 'status'); document.body.append(toast);
+let toastT;
+function showToast(html) {
+  toast.innerHTML = html; toast.classList.remove('show'); void toast.offsetWidth; toast.classList.add('show');
+  clearTimeout(toastT); toastT = setTimeout(() => toast.classList.remove('show'), 2600);
+}
+function earn(n, x, y) {
+  const before = score; score += n; save('pocket-score', score); paintScore();
+  scoreEl.classList.remove('bump'); void scoreEl.offsetWidth; scoreEl.classList.add('bump');
+  if (x != null && !still()) {
+    const f = document.createElement('span'); f.className = 'plus'; f.textContent = '+' + n;
+    f.style.left = x + 'px'; f.style.top = y + 'px'; document.body.append(f); setTimeout(() => f.remove(), 900);
+  }
+  const m = MILESTONES.find(([at]) => before < at && score >= at);
+  if (m) { showToast(`<span class="tpip" data-pip="toast"></span>${tr(m[1], m[2])}`); const h = $('[data-pip=toast]', toast); h.innerHTML = pipSVG(yarn, { fuzz: false }); sfx.yay() }
+}
+scoreEl.onclick = () => showToast(tr(`You’ve collected <b>${score}</b> drops. Every tap counts 💙`, `你已收集 <b>${score}</b> 滴。每一下都算數 💙`));
+relang.push(paintScore);
 
 /* ------------------------------------------------------------------ Pip artwork */
 // the real yarn shades on the DGS stall table
@@ -189,6 +223,7 @@ class Pip {
   poke(x, y) {
     this.kick(4.5, -6, rand(-60, 60)); this.face('squint', 650); sfx.boing();
     if (!still()) this.burst(x, y);
+    earn(1, x, y);
     this.onpoke?.();
   }
   bind() {
@@ -279,7 +314,11 @@ endPip.onpoke = () => { endPip.burst(innerWidth / 2, $('[data-pip=end]').getBoun
 /* ------------------------------------------------------------------ ch1 · cups */
 let cupChoice = null;
 function cupText() {
-  if (!cupChoice) return;
+  if (!cupChoice) {
+    $('#cupAnswerText').innerHTML = tr('Even with my two bead eyes, I couldn’t tell them apart. I had to read the handwriting.', '兩杯水看起來一模一樣。我有兩顆眼睛，還是得靠那幾個手寫字，才分得出哪杯是哪杯。')
+      + '<br><em>' + tr('Those cups held water. I carried a question: how does a drink you can trust get into somebody’s hands?', '紙杯盛水。我盛得下一個問題：一杯可以放心喝的水，是怎樣來到手上的？') + '</em>';
+    return;
+  }
   const t = cupChoice === 'tap'
     ? tr('Brave! And honestly, in Hong Kong you’d be fine — clean water reaches our taps so easily we hardly think about it.', '好勇敢！其實在香港也沒問題——乾淨的水輕易就流到我們的水龍頭，我們幾乎從來不用想。')
     : tr('Fair! But here’s the funny thing: in Hong Kong, either cup is fine. Clean water reaches our taps so easily we hardly think about it.', '合理！不過有趣的是：在香港，兩杯都可以喝。乾淨的水輕易就流到我們的水龍頭，我們幾乎從來不用想。');
@@ -296,40 +335,47 @@ relang.push(tdsText);
 $$('.papercup').forEach(b => b.onclick = () => {
   cupChoice = b.dataset.cup;
   $$('.papercup').forEach(o => { o.classList.toggle('picked', o === b); o.classList.toggle('dim', o !== b); o.setAttribute('aria-pressed', o === b) });
-  $('#cupAnswer').hidden = false; cupText(); sfx.pop(520); setTimeout(() => sfx.pop(780), 90);
-  cupMini.kick(3, -4, 30);
+  cupText(); sfx.pop(520); setTimeout(() => sfx.pop(780), 90);
+  cupMini.kick(3, -4, 30); const r = b.getBoundingClientRect(); earn(5, r.left + r.width / 2, r.top);
+  clearTimeout(advanceT); advanceT = setTimeout(() => go($('#s-answer')), still() ? 0 : 1100);
 });
 
 /* ------------------------------------------------------------------ ch2 · rain */
 let rainN = 0;
 const rainBox = $('#rainBox');
-$$('.cloud').forEach(c => c.onclick = () => {
-  c.classList.remove('squish'); void c.offsetWidth; c.classList.add('squish');
-  const bb = rainBox.getBoundingClientRect(), cb = c.getBoundingClientRect();
-  const n = 7;
+const rainScene = rainBox.closest('.scene');
+function rainAt(cx, cy) {
+  const bb = rainBox.getBoundingClientRect();
+  // the cloud nearest your finger squishes and rains
+  let near = null, nd = 1e9;
+  $$('.cloud').forEach(c => { const r = c.getBoundingClientRect(), d = Math.abs(r.left + r.width / 2 - cx); if (d < nd) { nd = d; near = c } });
+  near.classList.remove('squish'); void near.offsetWidth; near.classList.add('squish');
+  const n = 6, x0 = clamp(cx - bb.left, 10, bb.width - 10), y = Math.max(10, Math.min(cy - bb.top, bb.height * .35));
   for (let i = 0; i < n; i++) {
     const d = document.createElement('span'); d.className = 'rdrop';
-    const x = cb.left - bb.left + rand(.2, .8) * cb.width, y = cb.bottom - bb.top - 10;
-    const fall = rand(.55, .9) * (bb.height - y), t = .6 + fall / 700;
+    const x = x0 + rand(-26, 26), fall = rand(.5, .85) * (bb.height - y), t = .35 + fall / 1400;
     d.style.left = x + 'px'; d.style.top = y + 'px'; d.style.setProperty('--fall', fall + 'px'); d.style.setProperty('--t', t + 's');
-    d.style.animationDelay = i * 70 + 'ms'; rainBox.append(d);
+    d.style.animationDelay = i * 35 + 'ms'; rainBox.append(d);
     setTimeout(() => {
-      d.remove(); const s = document.createElement('span'); s.className = 'splash';
-      s.style.left = x + 'px'; s.style.top = (y + fall + 10) + 'px'; rainBox.append(s); setTimeout(() => s.remove(), 650);
-      rainN++; $('#rainN').textContent = rainN; sfx.plink(rand(1300, 2100));
-    }, (t * 1000) + i * 70);
+      d.remove(); const sp = document.createElement('span'); sp.className = 'splash';
+      sp.style.left = x + 'px'; sp.style.top = (y + fall + 10) + 'px'; rainBox.append(sp); setTimeout(() => sp.remove(), 650);
+      sfx.plink(rand(1300, 2100));
+    }, (t * 1000) + i * 35);
   }
-  buzz(8);
-});
+  rainN += n; $('#rainN').textContent = rainN; earn(n, cx, cy); buzz(8); sfx.pop(rand(700, 900));
+  const rc = $('.raincount'); rc.classList.remove('bump'); void rc.offsetWidth; rc.classList.add('bump');
+}
+rainScene.addEventListener('click', e => { if (e.target.closest('a,.pill')) return; rainAt(e.clientX, e.clientY) });
+rainScene.classList.add('tappable');
 
 /* ------------------------------------------------------------------ ch3 · journey */
 const journey = $('#journey'), route = $('#route'), mapwrap = $('.mapwrap');
 const routeLen = route.getTotalLength();
 const jNotes = [
   [0, 'Bye, Victoria Harbour! 👋', '拜拜，維多利亞港！👋'],
-  [.18, 'Over the South China Sea — so much water, and you can’t drink a drop of it (salty!).', '飛過南海——到處都是水，卻一滴也不能喝（鹹的！）。'],
-  [.5, 'Past the Philippines, past Borneo… my yarn is getting short.', '經過菲律賓、婆羅洲……我的毛線快用完了。'],
-  [.8, 'Almost there… I can see a long island shaped like a crocodile 🐊', '快到了……我看見一個像鱷魚的長長小島 🐊'],
+  [.2, 'Over the South China Sea — so much water, and you can’t drink a drop of it (salty!).', '飛過南海——到處都是水，卻一滴也不能喝（鹹的！）。'],
+  [.45, 'Past the Philippines, past Borneo… my yarn is getting short.', '經過菲律賓、婆羅洲……我的毛線快用完了。'],
+  [.7, 'Almost there… I can see a long island shaped like a crocodile 🐊', '快到了……我看見一個像鱷魚的長長小島 🐊'],
   [.95, 'Timor-Leste! Hello! 🌺', '東帝汶！你好！🌺'],
 ];
 let jStage = -1;
@@ -356,31 +402,52 @@ $('#cleanBtn').onclick = () => {
   if (!jarClean) { jar.classList.add('shake'); setTimeout(() => jar.classList.remove('shake'), 500); setTimeout(() => { jar.classList.add('clean'); sfx.yay() }, still() ? 0 : 450); }
   else { jar.classList.remove('clean'); sfx.glug() }
   jarClean = !jarClean; jarCopy();
+  if (jarClean) { const r = $('#jar').getBoundingClientRect(); earn(5, r.left + r.width / 2, r.top); confetti(r.left + r.width / 2, r.top + r.height / 3) }
 };
-$('#jar').onclick = () => { $('#jar').classList.add('shake'); sfx.glug(); setTimeout(() => $('#jar').classList.remove('shake'), 500) };
+$('#jar').onclick = () => $('#cleanBtn').click();
 
 /* ------------------------------------------------------------------ ch5 · hold to fill */
 const glass = $('#glass'), holdBtn = $('#holdBtn');
 let fill = 0, holding = false, fillRaf = 0, glugT = 0, filledOnce = false;
 function setFill(v) { fill = clamp(v); glass.style.setProperty('--fill', fill); holdBtn.style.setProperty('--fill', fill) }
+let fillAnim = 0;
+function tweenFill(to) {
+  cancelAnimationFrame(fillAnim); const from = fill, t0 = performance.now(), dur = still() ? 1 : 260;
+  const f = now => { const k = clamp((now - t0) / dur), e = 1 - (1 - k) ** 3; setFill(from + (to - from) * e); if (k < 1) fillAnim = requestAnimationFrame(f); else if (fill >= 1) doneFill() };
+  fillAnim = requestAnimationFrame(f);
+}
+function glug(x, y) {
+  if (fill >= 1) { setFill(0); glass.classList.remove('full'); fillCopy(false) }
+  glass.classList.add('pouring'); clearTimeout(glass._p); glass._p = setTimeout(() => { if (!holding) glass.classList.remove('pouring') }, 300);
+  glass.classList.remove('glug'); void glass.offsetWidth; glass.classList.add('glug');
+  sfx.glug(); buzz(10); earn(2, x, y);
+  tweenFill(Math.min(1, fill + .26));
+}
 function fillLoop(now) {
   if (!holding) return;
-  setFill(fill + (still() ? .03 : .011));
-  if (now - glugT > 180) { glugT = now; sfx.glug(); buzz(6) }
+  if (fill < 1) setFill(fill + .018);
+  if (now - glugT > 140) { glugT = now; sfx.glug(); buzz(6) }
   if (fill >= 1) { stopHold(); return doneFill() }
   fillRaf = requestAnimationFrame(fillLoop);
 }
-function startHold(e) { e?.preventDefault?.(); if (fill >= 1) { setFill(0); glass.classList.remove('full'); fillCopy(false) } holding = true; glass.classList.add('pouring'); fillRaf = requestAnimationFrame(fillLoop) }
-function stopHold() { holding = false; glass.classList.remove('pouring'); cancelAnimationFrame(fillRaf) }
+let holdT;
+function startHold(e) {
+  e?.preventDefault?.();
+  const r = holdBtn.getBoundingClientRect(); glug(e?.clientX ?? r.left + r.width / 2, e?.clientY ?? r.top);
+  clearTimeout(holdT); holdT = setTimeout(() => { holding = true; glass.classList.add('pouring'); fillRaf = requestAnimationFrame(fillLoop) }, 320);
+}
+function stopHold() { clearTimeout(holdT); holding = false; glass.classList.remove('pouring'); cancelAnimationFrame(fillRaf) }
 function fillCopy(done) {
   const t = $('#fillText');
   t.dataset.done = done ? 1 : '';
   t.innerHTML = done
     ? tr('One cup, filled. 💙<br>Now picture that again and again — GX Foundation says its machines give about <b>400,000 gallons</b> a year.', '一杯水，盛滿了。💙<br>現在想像這件事一次又一次地發生——共享基金會說，淨水機每年提供大約 <b>40 萬加侖</b>水。')
-    : tr('Keep holding… a cup takes patience.', '繼續按住……盛水要有耐性。');
-  holdBtn.querySelector('.lbl').textContent = done ? tr('Fill another ↺', '再盛一杯 ↺') : tr('Press & hold to fill the cup', '按住，盛一杯水');
+    : tr('Glug, glug… keep tapping!', '咕嘟、咕嘟……繼續按！');
+  holdBtn.querySelector('.lbl').textContent = done ? tr('Fill another ↺', '再盛一杯 ↺') : tr('Tap tap tap to fill the cup', '連按幾下，盛滿一杯水');
 }
-function doneFill() { glass.classList.add('full'); sfx.yay(); fillCopy(true); filledOnce = true }
+function doneFill() { if (glass.classList.contains('full')) return; glass.classList.add('full'); sfx.yay(); fillCopy(true); filledOnce = true; cupsFilled++; const r = glass.getBoundingClientRect(); earn(10, r.left + r.width / 2, r.top); confetti(r.left + r.width / 2, r.top + 20) }
+let cupsFilled = 0;
+glass.addEventListener('click', e => glug(e.clientX, e.clientY));
 relang.push(() => { if ($('#fillText').innerHTML) fillCopy(!!$('#fillText').dataset.done) });
 holdBtn.addEventListener('pointerdown', e => { holdBtn.setPointerCapture?.(e.pointerId); startHold(e); if (!filledOnce && fill < 1) fillCopy(false) });
 ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => holdBtn.addEventListener(ev, stopHold));
@@ -395,8 +462,9 @@ let lit = 0, celebrated = false;
 function light(d) {
   if (!d || d.classList.contains('lit')) return;
   d.classList.add('lit'); setTimeout(() => d.classList.add('settle'), 250);
-  lit++; $('#litN').textContent = lit; sfx.pop(420 + lit * 9);
-  if (lit === 100 && !celebrated) { celebrated = true; grid.classList.add('done'); sfx.yay(); const b = grid.getBoundingClientRect(); hero.burst.call({ host: grid }, b.left + b.width / 2, b.top + b.height / 2, ['💧', '💙', '✨', '🎉']) }
+  lit++; $('#litN').textContent = lit; sfx.pop(420 + lit * 9); buzz(4);
+  { const r = d.getBoundingClientRect(); earn(1, r.left + r.width / 2, r.top) }
+  if (lit === 100 && !celebrated) { celebrated = true; grid.classList.add('done'); sfx.yay(); { const r = grid.getBoundingClientRect(); confetti(r.left + r.width / 2, r.top + r.height / 2) } clearTimeout(advanceT); advanceT = setTimeout(() => go($('#s-stats')), still() ? 0 : 1500); const b = grid.getBoundingClientRect(); hero.burst.call({ host: grid }, b.left + b.width / 2, b.top + b.height / 2, ['💧', '💙', '✨', '🎉']) }
 }
 let painting = false;
 grid.addEventListener('pointerdown', e => { painting = true; grid.setPointerCapture?.(e.pointerId); light(e.target.closest('i')) });
@@ -458,6 +526,7 @@ $('#adoptBtn').onclick = () => {
   dangle.classList.remove('hop'); void dangle.offsetWidth; dangle.classList.add('hop');
   $('#bagStage').classList.add('wiggle'); setTimeout(() => $('#bagStage').classList.remove('wiggle'), 500);
   sfx.yay(); swing(40); renderBag();
+  { const r = $('#adoptBtn').getBoundingClientRect(); earn(20, r.left + r.width / 2, r.top); confetti(r.left + r.width / 2, r.top) }
   const bb = $('#bagBtn'); bb.classList.remove('bump'); void bb.offsetWidth; bb.classList.add('bump');
   setTimeout(openBag, still() ? 0 : 750);
 };
@@ -492,12 +561,76 @@ $$('img[data-optional]').forEach(img => {
 
 /* ------------------------------------------------------------------ scroll choreography */
 const bar = $('.yarnbar');
-const reveal = $$('.chapter > *:not(.sticker), .ending > *, .hello .lede, .hello .follow');
-reveal.forEach(el => el.classList.add('rv'));
-const io = new IntersectionObserver(es => es.forEach(e => {
-  if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); if (e.target.id === 'stats') $$('[data-count]').forEach(countUp) }
-}), { rootMargin: '0px 0px -8% 0px', threshold: .12 });
-reveal.forEach(el => io.observe(el));
+/* Scenes: the page snaps to each one. Landing plays a note, a haptic tick and a jelly settle.
+   The notes climb a pentatonic scale as you go deeper, so scrolling plays a little tune. */
+const scenes = $$('.scene');
+const stops = $$('.journey .stop');
+const snapTargets = () => [...scenes, ...stops].sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top);
+const NOTES = [523.25, 587.33, 659.25, 783.99, 880, 1046.5, 1174.66, 1318.51, 1567.98, 1760];
+function chime(i, up) {
+  const f = NOTES[i % NOTES.length];
+  tone(f, f * .995, .5, 'sine', .07); tone(f * 2, f * 2, .18, 'triangle', .022);
+  if (!up) tone(f * .75, f * .75, .25, 'sine', .03);
+}
+// iOS has no vibrate(); toggling a hidden switch gives Safari's own haptic tick
+const hapLabel = document.createElement('label'); hapLabel.className = 'hap'; hapLabel.setAttribute('aria-hidden', 'true');
+hapLabel.innerHTML = '<input type="checkbox" switch tabindex="-1">'; document.body.append(hapLabel);
+function tick(ms = 9) { if (!soundOn) return; if (navigator.vibrate) { try { navigator.vibrate(ms) } catch {} } else { try { hapLabel.click() } catch {} } }
+let landedIdx = -1, advanceT;
+function go(el) { if (el) el.scrollIntoView({ behavior: still() ? 'auto' : 'smooth', block: 'start' }) }
+function settle() {
+  const list = snapTargets();
+  let best = null, bd = 1e9;
+  list.forEach((el, i) => { const d = Math.abs(el.getBoundingClientRect().top); if (d < bd) { bd = d; best = i } });
+  if (best == null || bd > 40 || best === landedIdx) return;
+  const up = best > landedIdx; landedIdx = best;
+  const el = list[best];
+  chime(best, up); tick();
+  if (el.classList.contains('scene') && !still()) { el.classList.remove('landed'); void el.offsetWidth; el.classList.add('landed') }
+  markRail(el);
+}
+let settleT;
+addEventListener('scroll', () => { clearTimeout(settleT); settleT = setTimeout(settle, 140); if (scrollY > 30) document.body.classList.add('scrolled') }, { passive: true });
+if ('onscrollend' in window) addEventListener('scrollend', () => { clearTimeout(settleT); settle() });
+
+// a scene comes alive (staggered entrance) when it's mostly on screen, and resets when it leaves
+scenes.forEach(sc => $$('.rv', sc).forEach((el, i) => el.style.setProperty('--i', i)));
+let statsCounted = false;
+const sio = new IntersectionObserver(es => es.forEach(e => {
+  const vis = e.intersectionRect.height / Math.min(innerHeight, e.boundingClientRect.height || innerHeight);
+  if (vis > .5) {
+    e.target.classList.add('live');
+    if (!statsCounted && e.target.contains($('#stats'))) { statsCounted = true; $$('[data-count]').forEach(countUp) }
+  } else if (!e.isIntersecting) e.target.classList.remove('live');
+}), { threshold: [0, .25, .5, .6, .75, 1] });
+scenes.forEach(sc => sio.observe(sc));
+
+// chapter rail: one dot per chapter, tap to jump
+const chapters = $$('[data-ch]');
+const rail = document.createElement('nav'); rail.className = 'rail'; rail.setAttribute('aria-label', 'Chapters');
+chapters.forEach((ch, i) => {
+  const b = document.createElement('button'); b.setAttribute('aria-label', 'Chapter ' + i);
+  b.onclick = () => go(ch.querySelector('.scene') || ch); rail.append(b);
+});
+document.body.append(rail);
+function markRail(el) {
+  const ch = el.closest('[data-ch]'); if (!ch) return;
+  $$('button', rail).forEach((b, i) => b.setAttribute('aria-current', chapters[i] === ch));
+}
+markRail(scenes[0]);
+
+// confetti: little drops and hearts burst from a point
+function confetti(x, y) {
+  if (still()) return;
+  for (let i = 0; i < 16; i++) {
+    const c = document.createElement('span'); c.className = 'confetti'; c.textContent = pick(['💧', '💙', '✦', '♡', '✿']);
+    const a = rand(-Math.PI, 0), v = rand(80, 200);
+    c.style.left = x + 'px'; c.style.top = y + 'px';
+    c.style.setProperty('--dx', Math.cos(a) * v + 'px'); c.style.setProperty('--dy', Math.sin(a) * v + 'px'); c.style.setProperty('--r', rand(-180, 180) + 'deg');
+    c.style.fontSize = rand(12, 22) + 'px'; document.body.append(c); setTimeout(() => c.remove(), 1200);
+  }
+}
+
 let queued = false, lastP = 0;
 function paint() {
   queued = false;
@@ -511,11 +644,12 @@ function paint() {
   traveller.host.style.setProperty('--tx', (pt.x / 4).toFixed(2)); traveller.host.style.setProperty('--ty', (pt.y / 3).toFixed(2));
   traveller.host.style.setProperty('--tr', clamp(Math.atan2(ahead.y - pt.y, ahead.x - pt.x) * 18, -24, 24).toFixed(1));
   const st = jNotes.reduce((a, n, i) => jp >= n[0] ? i : a, 0);
-  if (st !== jStage) { jStage = st; paintNote(); if (jb.top < innerHeight && jb.bottom > 0) { sfx.plink(900 + st * 160); traveller.kick(2, -3, 20) } }
+  if (st !== jStage) { jStage = st; paintNote(); if (jb.top < innerHeight && jb.bottom > 0) traveller.kick(2, -3, 20) }
+  const jd = Math.round(jp * 4); $$('.jdots i').forEach((d, i) => d.classList.toggle('on', i === jd));
 }
 const queue = () => { if (!queued) { queued = true; requestAnimationFrame(paint) } };
 addEventListener('scroll', queue, { passive: true }); addEventListener('resize', queue);
 motion.addEventListener?.('change', queue);
 
-language(); paintSound(); renderBag(); paint();
+language(); paintSound(); paintScore(); renderBag(); cupText(); paint();
 })();
