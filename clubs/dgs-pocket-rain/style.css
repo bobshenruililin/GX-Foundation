@@ -366,3 +366,4 @@ html.art-paper body{background:url(assets/paper-texture.webp) center/900px repea
 .cinema.has-art{display:block}
 .cinema img{display:block;width:100%;height:min(88svh,760px);object-fit:cover}
 .cinema figcaption{position:absolute;left:0;right:0;bottom:0;padding:70px 20px 26px;color:#fff;font:600 clamp(18px,2.6vw,26px)/1.4 var(--round);text-shadow:0 2px 12px #1c2a5288;background:linear-gradient(transparent,#1c2a5299)}
+.mapwrap .map{position:relative;z-index:1}

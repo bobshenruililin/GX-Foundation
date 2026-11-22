@@ -283,7 +283,8 @@ function cupText() {
   const t = cupChoice === 'tap'
     ? tr('Brave! And honestly, in Hong Kong you’d be fine — clean water reaches our taps so easily we hardly think about it.', '好勇敢！其實在香港也沒問題——乾淨的水輕易就流到我們的水龍頭，我們幾乎從來不用想。')
     : tr('Fair! But here’s the funny thing: in Hong Kong, either cup is fine. Clean water reaches our taps so easily we hardly think about it.', '合理！不過有趣的是：在香港，兩杯都可以喝。乾淨的水輕易就流到我們的水龍頭，我們幾乎從來不用想。');
-  $('#cupAnswerText').innerHTML = t + '<br><em>' + tr('…but what if you had to think about it, every single cup?', '……但如果每一杯水，你都要想一想呢？') + '</em>';
+  $('#cupAnswerText').innerHTML = tr('Even with my two bead eyes, I couldn’t tell them apart. I had to read the handwriting. ', '兩杯水看起來一模一樣。我有兩顆眼睛，還是得靠那幾個手寫字，才分得出哪杯是哪杯。') + t
+    + '<br><em>' + tr('Those cups held water. I carried a question: how does a drink you can trust get into somebody’s hands?', '紙杯盛水。我盛得下一個問題：一杯可以放心喝的水，是怎樣來到手上的？') + '</em>';
 }
 relang.push(cupText);
 function tdsText() {
