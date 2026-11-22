@@ -136,9 +136,9 @@ function candidates(){
  const queue=new Int32Array(mask.length),found=[],minArea=Math.max(3,Math.round(w*h/300000)), maxArea=Math.max(80,w*h*.004);
  for(let i=0;i<mask.length;i++){
   if(!mask[i])continue;
-  let head=0,tail=1,sx=0,sy=0,tone=0,left=w,right=0,top=h,bottom=0;queue[0]=i;mask[i]=0;
+  let head=0,tail=1,left=w,right=0,top=h,bottom=0;queue[0]=i;mask[i]=0;
   while(head<tail){
-   const p=queue[head++],cy=Math.floor(p/w),cx=p-cy*w;sx+=cx;sy+=cy;tone+=gray[p];
+   const p=queue[head++],cy=Math.floor(p/w),cx=p-cy*w;
    left=Math.min(left,cx);right=Math.max(right,cx);top=Math.min(top,cy);bottom=Math.max(bottom,cy);
    for(let yy=Math.max(0,cy-1);yy<=Math.min(h-1,cy+1);yy++)for(let xx=Math.max(0,cx-1);xx<=Math.min(w-1,cx+1);xx++){
     const n=yy*w+xx;if(mask[n]){mask[n]=0;queue[tail++]=n}
@@ -149,11 +149,62 @@ function candidates(){
    {
     const l=Math.max(0,left-windowRadius),t=Math.max(0,top-windowRadius),r=Math.min(w,right+windowRadius+1),b=Math.min(h,bottom+windowRadius+1);
     const bg=(sums[b*stride+r]-sums[t*stride+r]-sums[b*stride+l]+sums[t*stride+l])/((r-l)*(b-t));
-    found.push({x:x+sx/tail,y:y+sy/tail,radius:Math.max(bw,bh)*.56,
-     f:[Math.log1p(tail)/8,Math.log(Math.max(bw,bh)/Math.min(bw,bh))/2.6,tail/(bw*bh),Math.abs(bg-tone/tail)/255,Math.log1p(Math.max(bw,bh))/6]});
+    found.push({pixels:queue.slice(0,tail),left,top,bw,bh,bg});
    }
  }
- return found;
+ const sizes=found.map(c=>c.pixels.length).sort((a,b)=>a-b);
+ const typical=sizes[Math.floor(sizes.length/2)];
+ const result=[];
+ for(const part of found){
+  const groups=found.length>=20 && part.pixels.length>=1.5*typical
+   ? splitBodies(part,w,typical) : [part.pixels];
+  for(const group of groups){
+   let sx=0,sy=0,tone=0,l=w,r=0,t=h,b=0;
+   for(const i of group){
+    const cy=Math.floor(i/w),cx=i-cy*w;sx+=cx;sy+=cy;tone+=gray[i];
+    l=Math.min(l,cx);r=Math.max(r,cx);t=Math.min(t,cy);b=Math.max(b,cy);
+   }
+   const n=group.length,bw=r-l+1,bh=b-t+1;
+   result.push({x:x+sx/n,y:y+sy/n,radius:Math.max(bw,bh)*.56,
+    f:[Math.log1p(n)/8,Math.log(Math.max(bw,bh)/Math.min(bw,bh))/2.6,n/(bw*bh),Math.abs(part.bg-tone/n)/255,Math.log1p(Math.max(bw,bh))/6]});
+  }
+ }
+ return result;
+}
+// Thin contacts disappear when the silhouette is eroded. Use the remaining
+// body centres to partition the original pixels and retain their measurements.
+function splitBodies(part,width,typical){
+ const {pixels,left,top,bw,bh}=part,stride=bw+2;
+ let shape=new Uint8Array(stride*(bh+2));
+ for(const i of pixels)shape[(Math.floor(i/width)-top+1)*stride+i%width-left+1]=1;
+ const rounds=Math.max(1,Math.min(5,Math.round(Math.sqrt(typical)/7)));
+ for(let k=0;k<rounds;k++){
+  const next=new Uint8Array(shape.length);
+  for(let i=stride+1;i<shape.length-stride-1;i++)if(shape[i]&&shape[i-1]&&shape[i+1]&&shape[i-stride]&&shape[i+stride])next[i]=1;
+  shape=next;
+ }
+ const cores=[],offsets=[-1,1,-stride,stride,-stride-1,-stride+1,stride-1,stride+1];
+ for(let i=0;i<shape.length;i++){
+  if(!shape[i])continue;
+  const stack=[i];shape[i]=0;let n=0,sx=0,sy=0;
+  while(stack.length){
+   const at=stack.pop();n++;sx+=at%stride;sy+=Math.floor(at/stride);
+   for(const offset of offsets){const j=at+offset;if(shape[j]){shape[j]=0;stack.push(j)}}
+  }
+  if(n>=Math.max(3,typical*.025))cores.push({x:left+sx/n-1,y:top+sy/n-1,n});
+ }
+ const centres=[];
+ for(const c of cores.sort((a,b)=>b.n-a.n)){
+  if(centres.every(p=>Math.hypot(c.x-p.x,c.y-p.y)>Math.sqrt(typical)*.72))centres.push(c);
+ }
+ if(centres.length<2||centres.length>Math.ceil(pixels.length/typical*1.3))return [pixels];
+ const groups=centres.map(()=>[]);
+ for(const i of pixels){
+  const cx=i%width,cy=Math.floor(i/width);let best=Infinity,at=0;
+  centres.forEach((p,j)=>{const d=(cx-p.x)**2+(cy-p.y)**2;if(d<best){best=d;at=j}});
+  groups[at].push(i);
+ }
+ return groups.every(g=>g.length>=typical*.24)?groups:[pixels];
 }
 function recount(){raw=candidates();applyFilter()}
 function applyFilter(){
