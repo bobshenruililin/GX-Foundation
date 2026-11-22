@@ -20,25 +20,71 @@ aside{padding:20px}h2{font-size:1rem;margin:0}.count{font:normal 4.8rem/1.1 Geor
 label.field{display:block;font-weight:650;margin:14px 0 4px}input[type=range],select{width:100%;accent-color:var(--green)}.note,footer{font-size:.86rem;color:#4d625b}
 #status{min-height:1.5em;margin:8px 0 0}footer{padding:20px 0 32px}.meta{font-size:.9rem;color:#486059}
 @media(max-width:760px){.layout{grid-template-columns:1fr;gap:10px}.intro{margin:20px 0 16px}.stage{padding:8px}.bar,.inside,aside{padding:14px}.count{font-size:3.5rem}header{padding:12px 0}}
+[hidden]{display:none!important}
+.viewer{overflow:auto;max-height:65vh;overscroll-behavior:contain;text-align:left}.viewer canvas{width:100%;max-width:none;touch-action:pan-x pan-y pinch-zoom}
+.stage{padding:6px}.summary{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}.summary output{font:600 2rem/1 Georgia;color:var(--green)}.panel,.layout>*{min-width:0}
+dialog{color:var(--ink);border:0;border-radius:18px;padding:18px;width:min(95vw,620px);max-height:94dvh}dialog::backdrop{background:#142322d9}
+video{width:100%;max-height:60dvh;background:#162726;object-fit:contain;border-radius:9px}
+details summary{cursor:pointer;font-weight:650;padding:8px 0}details p{font-size:.93rem}.teach{margin:10px 0}
+button[aria-pressed=true].teachBtn{background:#1b5e4c;color:white}
 </style></head>
 <body><header><span class="gx" aria-hidden="true">GX</span> GX Foundation <small>Field prototype</small></header>
-<main><div class="intro"><h1>Sticky-board counter</h1><p>Photograph a board, review the marked insects, and record a rough mosquito count.</p>
-<div class="actions"><input id="photo" type="file" accept="image/*"><label class="upload primary" for="photo">Choose board photo</label><button id="demo">Try sample board</button></div><p id="status" class="note" role="status"></p></div>
+<main><div class="intro"><h1>Sticky-board counter</h1><p>Point your phone at one sticky board to estimate the catch.</p>
+<div class="actions"><button id="camera" class="primary">Open camera</button><input id="native" type="file" accept="image/*" capture="environment"><input id="photo" type="file" accept="image/*"><label class="upload" for="photo">Choose board photo</label><button id="fallback" hidden>Use system camera</button><button id="demo">Try dense sample</button></div><p id="status" class="note" role="status"></p></div>
 <div class="layout"><section class="panel" aria-label="Board review"><div class="bar"><strong id="name">Illustrated sample</strong><small id="size"></small></div>
-<div class="stage"><canvas id="board" aria-label="Board image with candidate rings"></canvas></div>
+<div class="bar summary"><div><output id="quickCount">–</output> estimated</div><button id="zoom">Magnify 3×</button></div><div class="inside" id="teachBar" hidden><div class="actions"><button id="switchLabel"></button><button id="endLabels">Finish labeling</button></div><small id="teachTotals"></small></div><div class="stage"><div class="viewer" id="viewer"><canvas id="board" aria-label="Board image with candidate rings"></canvas></div></div>
 <div class="inside"><p id="instruction">Tap a ring to remove it. Tap a missed insect to add it.</p><div class="actions"><button id="region">Select board area</button><button id="undo" disabled>Undo</button><button id="marks" aria-pressed="true">Hide marks</button></div></div></section>
 <aside><h2>Estimated count</h2><div class="count" id="count" aria-live="polite">–</div><div class="meta" id="details"></div><hr class="rule"><p class="note">The automatic pass finds contrasting spots. Check the rings for debris, other insects, and overlapping catches.</p>
 <label class="field" for="polarity">Insects appear</label><select id="polarity"><option value="dark">Dark on a lighter board</option><option value="light">Light on a darker board</option></select>
 <label class="field" for="sensitivity">Sensitivity · <output id="level">3</output> / 5</label><input id="sensitivity" type="range" min="1" max="5" value="3">
 <button id="detect">Recount area</button><p class="note" style="margin-top:8px">Recount replaces manual edits. Undo restores them.</p>
+<hr class="rule"><details id="cal"><summary>Teach the counter</summary><p>Magnify the board and label examples of both mosquitoes and debris. With at least six of each, fit a small neural filter to the detected spots.</p>
+<div class="actions teach"><button class="teachBtn" id="yes" aria-pressed="false">Label mosquito</button><button class="teachBtn" id="no" aria-pressed="false">Label debris</button></div>
+<p id="labels" aria-live="polite"></p><div class="actions"><button id="train">Apply learning</button><button id="clear">Reset learning</button></div>
+<p class="note">Applying or resetting learning recounts the board. Sample practice is separate. On real boards, only labeled shape and contrast measurements stay in this browser.</p></details>
 <hr class="rule"><button id="save">Save marked image</button></aside></div></main>
 <footer>Works on this device. For the clearest photo, fill the frame with one board and avoid glare.</footer>
+<dialog id="capture"><h2>Frame one board</h2><p>Fill the view with the sticky surface. Hold the phone parallel to it.</p><video id="video" autoplay muted playsinline></video><p id="cameraState" role="status"></p><div class="actions"><button class="primary" id="shutter">Capture &amp; count</button><button id="auto">Capture when steady</button><button id="cancel">Close</button></div></dialog>
 <script>
 'use strict';
 const el=id=>document.getElementById(id);
 const board=el('board'), ctx=board.getContext('2d');
 const source=document.createElement('canvas'), src=source.getContext('2d',{willReadFrequently:true});
 let area, points=[], baseline=0, snapshots=[], picking=false, first=null, showing=true, sequence=0, filename='Illustrated sample';
+let raw=[], labelMode=null, boardLabels=new Map(), examples=[], network=null, sample=true, enlarged=false;
+let demoLearning={examples:[],network:null};
+const storageKey='gx-board-calibration-v1';
+function loadLearning(){
+ let state=demoLearning;
+ if(!sample){try{state=JSON.parse(localStorage.getItem(storageKey))||{}}catch{state={}}}
+ examples=Array.isArray(state.examples)?state.examples.slice():[];network=state.network||null;
+}
+function saveLearning(){
+ const state={examples,network};
+ if(sample){demoLearning=state;return}
+ try{localStorage.setItem(storageKey,JSON.stringify(state))}catch{status('Calibration is available for this visit only.')}
+}
+function teachMode(mode){labelMode=mode;showing=true;picking=false;first=null;draw()}
+el('switchLabel').onclick=()=>teachMode(labelMode==='yes'?'no':'yes');
+el('endLabels').onclick=()=>{teachMode(null);el('cal').scrollIntoView({block:'center'})};
+function updateTeaching(){
+ const positives=examples.filter(e=>e.y===1).length, negatives=examples.length-positives;
+ el('labels').textContent=positives+' mosquito · '+negatives+' debris'+(network?' · filter active':'');
+ el('teachBar').hidden=!labelMode;
+ el('switchLabel').textContent=labelMode==='yes'?'Switch to debris':'Switch to mosquito';
+ el('teachTotals').textContent='Labeling '+(labelMode==='yes'?'mosquitoes':'debris')+' · '+el('labels').textContent;
+ el('train').disabled=positives<6||negatives<6;
+ el('clear').disabled=!examples.length&&!network;
+ for(const id of ['yes','no'])el(id).setAttribute('aria-pressed',String(labelMode===id));
+}
+function nearestSpot(list,x,y,ratio){
+ let best=null,dist=Infinity;
+ for(const p of list){const d=Math.hypot(x-p.x,y-p.y);if(d<dist&&d<=Math.max(7*ratio,p.radius||0)){dist=d;best=p}}
+ return best;
+}
+const spotKey=p=>p.x.toFixed(1)+','+p.y.toFixed(1);
+function setZoom(on){enlarged=on;board.style.width=on?'300%':'100%';el('zoom').textContent=on?'Fit whole board':'Magnify 3×'}
+el('zoom').onclick=()=>{setZoom(!enlarged);draw()};
 function status(message){el('status').textContent=message}
 function remember(){
  snapshots.push({area:{...area},points:points.slice(),baseline});
@@ -50,18 +96,24 @@ function draw(){
  if(area.x||area.y||area.w<w||area.h<h){
   ctx.fillStyle='rgba(15,31,27,.42)';ctx.beginPath();ctx.rect(0,0,w,h);ctx.rect(area.x,area.y,area.w,area.h);ctx.fill('evenodd');
  }
- const ring=Math.max(5,w/scale*6);
+ const ring=Math.max(2,w/scale*2);
  if(showing){for(const p of points){
   ctx.beginPath();ctx.arc(p.x,p.y,Math.max(ring,p.radius||0),0,Math.PI*2);
-  ctx.lineWidth=3*w/scale;ctx.strokeStyle='rgba(255,255,255,.9)';ctx.stroke();
-  ctx.lineWidth=1.6*w/scale;ctx.strokeStyle=p.manual?'#a5461c':'#007a60';ctx.stroke();
+  ctx.lineWidth=1.8*w/scale;ctx.strokeStyle='rgba(255,255,255,.9)';ctx.stroke();
+  ctx.lineWidth=.9*w/scale;ctx.strokeStyle=p.manual?'#a5461c':'#007a60';ctx.stroke();
  }}
  if(first){ctx.fillStyle='#bc5424';ctx.beginPath();ctx.arc(first.x,first.y,ring,0,Math.PI*2);ctx.fill()}
+ if(labelMode && showing){
+  ctx.lineWidth=Math.max(1,w/scale);
+  for(const p of raw){const label=boardLabels.get(spotKey(p));ctx.beginPath();ctx.arc(p.x,p.y,Math.max(ring,p.radius)+ctx.lineWidth,0,Math.PI*2);
+   ctx.strokeStyle=label?(label.y?'#1447b5':'#bc3e15'):'#655c82';ctx.stroke()}
+ }
+ el('quickCount').textContent=points.length;updateTeaching();
  el('count').textContent=points.length;el('details').textContent=baseline+' automatic · '+points.filter(p=>p.manual).length+' added · '+(baseline-points.filter(p=>!p.manual).length)+' removed';
  el('size').textContent=w+' × '+h;el('name').textContent=filename;el('undo').disabled=!snapshots.length;
  el('marks').textContent=showing?'Hide marks':'Show marks';el('marks').setAttribute('aria-pressed',String(showing));
  el('region').textContent=picking?'Cancel selection':'Select board area';
- el('instruction').textContent=picking?(first?'Tap the opposite corner.':'Tap one corner of the board area.'):(showing?'Tap a ring to remove it. Tap a missed insect to add it.':'Marks are hidden. Show them to edit the count.');
+ el('instruction').textContent=labelMode?'Tap a circled spot to label it as '+(labelMode==='yes'?'a mosquito.':'debris.')+' Tap the label button again to finish.':picking?(first?'Tap the opposite corner.':'Tap one corner of the board area.'):(showing?'Tap a ring to remove it. Tap a missed insect to add it.':'Marks are hidden. Show them to edit the count.');
 }
 function candidates(){
  const {x,y,w,h}=area, bytes=src.getImageData(x,y,w,h).data;
@@ -82,9 +134,9 @@ function candidates(){
  const queue=new Int32Array(mask.length),found=[],minArea=Math.max(3,Math.round(w*h/300000)), maxArea=Math.max(80,w*h*.004);
  for(let i=0;i<mask.length;i++){
   if(!mask[i])continue;
-  let head=0,tail=1,sx=0,sy=0,left=w,right=0,top=h,bottom=0;queue[0]=i;mask[i]=0;
+  let head=0,tail=1,sx=0,sy=0,tone=0,left=w,right=0,top=h,bottom=0;queue[0]=i;mask[i]=0;
   while(head<tail){
-   const p=queue[head++],cy=Math.floor(p/w),cx=p-cy*w;sx+=cx;sy+=cy;
+   const p=queue[head++],cy=Math.floor(p/w),cx=p-cy*w;sx+=cx;sy+=cy;tone+=gray[p];
    left=Math.min(left,cx);right=Math.max(right,cx);top=Math.min(top,cy);bottom=Math.max(bottom,cy);
    for(let yy=Math.max(0,cy-1);yy<=Math.min(h-1,cy+1);yy++)for(let xx=Math.max(0,cx-1);xx<=Math.min(w-1,cx+1);xx++){
     const n=yy*w+xx;if(mask[n]){mask[n]=0;queue[tail++]=n}
@@ -92,22 +144,30 @@ function candidates(){
   }
   const bw=right-left+1,bh=bottom-top+1;
   if(tail>=minArea && tail<=maxArea && Math.max(bw,bh)<Math.max(30,Math.min(w,h)*.14) && Math.max(bw/bh,bh/bw)<13)
-   found.push({x:x+sx/tail,y:y+sy/tail,radius:Math.max(bw,bh)*.56});
+   {
+    const l=Math.max(0,left-windowRadius),t=Math.max(0,top-windowRadius),r=Math.min(w,right+windowRadius+1),b=Math.min(h,bottom+windowRadius+1);
+    const bg=(sums[b*stride+r]-sums[t*stride+r]-sums[b*stride+l]+sums[t*stride+l])/((r-l)*(b-t));
+    found.push({x:x+sx/tail,y:y+sy/tail,radius:Math.max(bw,bh)*.56,
+     f:[Math.log1p(tail)/8,Math.log(Math.max(bw,bh)/Math.min(bw,bh))/2.6,tail/(bw*bh),Math.abs(bg-tone/tail)/255,Math.log1p(Math.max(bw,bh))/6]});
+   }
  }
  return found;
 }
-function recount(){points=candidates();baseline=points.length;first=null;picking=false;showing=true;draw()}
+function recount(){raw=candidates();applyFilter()}
+function applyFilter(){
+ points=raw.filter(p=>{const labeled=boardLabels.get(spotKey(p));return network?(labeled?labeled.y===1:predict(network,p.f).score>=.5):true});
+ baseline=points.length;first=null;picking=false;showing=true;draw()}
 function reset(name){
- filename=name;board.width=source.width;board.height=source.height;area={x:0,y:0,w:source.width,h:source.height};
+ sample=name==='Illustrated sample';boardLabels.clear();labelMode=null;loadLearning();setZoom(false);filename=name;board.width=source.width;board.height=source.height;area={x:0,y:0,w:source.width,h:source.height};
  snapshots=[];el('polarity').value='dark';el('sensitivity').value=3;el('level').textContent=3;recount()
 }
 function demo(){
- sequence++;el('photo').value='';source.width=960;source.height=580;
- src.fillStyle='#f7df84';src.fillRect(0,0,960,580);
+ sequence++;el('photo').value='';source.width=1440;source.height=960;
+ src.fillStyle='#f7df84';src.fillRect(0,0,1440,960);
  let seed=405;const rand=()=>((seed=(seed*1664525+1013904223)>>>0)/4294967296);
- for(let i=0;i<11000;i++){src.fillStyle=i%2?'#f5dc81':'#fae48d';src.fillRect(rand()*960,rand()*580,2,2)}
- for(let i=0;i<18;i++){
-  const x=75+(i%6)*155+rand()*60,y=82+Math.floor(i/6)*171+rand()*59;
+ for(let i=0;i<11000;i++){src.fillStyle=i%2?'#f5dc81':'#fae48d';src.fillRect(rand()*1440,rand()*960,2,2)}
+ for(let i=0;i<320;i++){
+  const x=22+(i%20)*71+rand()*28,y=20+Math.floor(i/20)*59+rand()*28;
   src.save();src.translate(x,y);src.rotate(rand()*Math.PI);src.strokeStyle='#524a36';src.fillStyle='#39382e';src.lineWidth=1.5;
   for(const side of [-1,1]){
    for(const offset of [-3,0,3]){src.beginPath();src.moveTo(0,offset);src.lineTo(side*5,offset-3);src.lineTo(side*9,offset+2);src.stroke()}
@@ -115,22 +175,30 @@ function demo(){
   }
   src.beginPath();src.ellipse(0,0,2,7,0,0,Math.PI*2);src.fill();src.restore()
  }
- reset('Illustrated sample');status('Practice board with 18 drawn insects. Choose a photo to count a real board.')
+ for(let i=0;i<40;i++){src.beginPath();src.fillStyle='#695335';src.arc(9+(i%20)*71,57+Math.floor(i/20)*400,2.5+rand()*1.5,0,Math.PI*2);src.fill()}
+ reset('Illustrated sample');status('Practice board with 320 drawn mosquitoes and 40 specks of debris. The estimate includes lookalikes until reviewed.')
 }
-el('photo').onchange=async e=>{
+el('native').onchange=el('photo').onchange=async e=>{
  const file=e.target.files[0];if(!file)return;const token=++sequence,url=URL.createObjectURL(file);
  try{status('Reading photo…');const img=new Image();img.src=url;await img.decode();if(token!==sequence)return;
-  const scale=Math.min(1,1800/Math.max(img.naturalWidth,img.naturalHeight));source.width=Math.max(1,Math.round(img.naturalWidth*scale));source.height=Math.max(1,Math.round(img.naturalHeight*scale));
+  const scale=Math.min(1,2304/Math.max(img.naturalWidth,img.naturalHeight));source.width=Math.max(1,Math.round(img.naturalWidth*scale));source.height=Math.max(1,Math.round(img.naturalHeight*scale));
   src.fillStyle='white';src.fillRect(0,0,source.width,source.height);src.drawImage(img,0,0,source.width,source.height);reset(file.name);status('Photo processed on this device. Review the rings before saving.')
  }catch{if(token===sequence)status('Could not read this photo. Try a JPEG or PNG.')}finally{URL.revokeObjectURL(url);if(token===sequence)e.target.value=''}
 };
 el('demo').onclick=demo;el('detect').onclick=()=>{remember();recount();status('Recounted the selected area.')};
 el('sensitivity').oninput=e=>el('level').textContent=e.target.value;
 el('marks').onclick=()=>{showing=!showing;draw()};
-el('region').onclick=()=>{picking=!picking;first=null;draw()};
-el('undo').onclick=()=>{const s=snapshots.pop();if(s){area=s.area;points=s.points;baseline=s.baseline;first=null;picking=false;showing=true;draw()}};
+el('region').onclick=()=>{labelMode=null;picking=!picking;first=null;draw()};
+el('undo').onclick=()=>{const s=snapshots.pop();if(s){area=s.area;raw=candidates();points=s.points;baseline=s.baseline;first=null;picking=false;showing=true;draw()}};
 board.onclick=e=>{
  const box=board.getBoundingClientRect(),ratio=board.width/box.width,x=Math.min(board.width-1,Math.max(0,Math.floor((e.clientX-box.left)*ratio))),y=Math.min(board.height-1,Math.max(0,Math.floor((e.clientY-box.top)*board.height/box.height)));
+ if(labelMode){
+  const hit=nearestSpot(raw,x,y,ratio);if(!hit){status('Tap a circled candidate. Increase sensitivity to find fainter spots.');return}
+  const key=spotKey(hit),old=boardLabels.get(key),yClass=Number(labelMode==='yes');
+  if(old?.y===yClass)return;
+  if(old)examples=examples.filter(e=>e!==old);
+  const entry={f:hit.f,y:yClass};examples.push(entry);boardLabels.set(key,entry);saveLearning();draw();return
+ }
  if(picking){
   if(!first){first={x,y};draw();return}
   const w=Math.abs(first.x-x)+1,h=Math.abs(first.y-y)+1;
@@ -142,11 +210,75 @@ board.onclick=e=>{
  remember();if(nearest>=0)points.splice(nearest,1);else points.push({x,y,manual:true});draw()
 };
 el('save').onclick=()=>{
+ const oldMode=labelMode;labelMode=null;
  const was=showing;showing=true;first=null;picking=false;draw();
  const out=document.createElement('canvas');out.width=board.width;const pad=Math.max(55,Math.round(out.width*.065));out.height=board.height+pad;
  const c=out.getContext('2d');c.drawImage(board,0,0);c.fillStyle='#192f2d';c.fillRect(0,board.height,out.width,pad);
  c.fillStyle='white';c.font='bold '+Math.max(12,Math.round(pad*.33))+'px sans-serif';c.fillText(filename+' · Estimated count: '+points.length,12,board.height+pad*.6,out.width-24);
- showing=was;draw();out.toBlob(blob=>{if(!blob){status('Image could not be saved.');return}const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='gx-board-count.png';a.click();setTimeout(()=>URL.revokeObjectURL(url),30000)},'image/png')
+ showing=was;labelMode=oldMode;draw();out.toBlob(blob=>{if(!blob){status('Image could not be saved.');return}const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='gx-board-count.png';a.click();setTimeout(()=>URL.revokeObjectURL(url),30000)},'image/png')
+};
+// Standardize five component features, then fit a six-unit tanh hidden layer.
+function predict(net,f){
+ const z=f.map((v,i)=>Math.max(-5,Math.min(5,(v-net.mean[i])/net.sd[i])));
+ const hidden=net.a.map(row=>Math.tanh(row[5]+z.reduce((sum,x,i)=>sum+x*row[i],0)));
+ const score=1/(1+Math.exp(-net.b[6]-hidden.reduce((sum,h,j)=>sum+h*net.b[j],0)));
+ return {z,hidden,score};
+}
+function fit(rows){
+ const groups=[rows.filter(e=>!e.y),rows.filter(e=>e.y)];
+ const mean=Array.from({length:5},(_,i)=>rows.reduce((sum,r)=>sum+r.f[i],0)/rows.length);
+ const sd=mean.map((m,i)=>Math.max(.035,Math.sqrt(rows.reduce((sum,r)=>sum+(r.f[i]-m)**2,0)/rows.length)));
+ const net={mean,sd,a:Array.from({length:6},(_,j)=>Array.from({length:6},(_,i)=>.25*Math.sin((i+1)*(j+2)))),b:Array.from({length:7},(_,j)=>.2*Math.cos(j+1))};
+ for(let t=0;t<2400;t++){
+  const g=groups[t%2], row=g[Math.floor(t/2)%g.length],{z,hidden,score}=predict(net,row.f),err=score-row.y;
+  for(let j=0;j<6;j++){
+   const delta=err*net.b[j]*(1-hidden[j]**2);
+   for(let i=0;i<5;i++)net.a[j][i]-=.035*delta*z[i];
+   net.a[j][5]-=.035*delta;net.b[j]-=.035*err*hidden[j];
+  }
+  net.b[6]-=.035*err;
+ }
+ return net;
+}
+for(const id of ['yes','no'])el(id).onclick=()=>{teachMode(labelMode===id?null:id);if(labelMode)el('teachBar').scrollIntoView({block:'start'})};
+el('cal').ontoggle=()=>{if(!el('cal').open&&labelMode)teachMode(null)};
+el('train').onclick=()=>{network=fit(examples);saveLearning();snapshots=[];labelMode=null;applyFilter();status('Applied the learned filter. Check its rings against the board.')};
+el('clear').onclick=()=>{examples=[];network=null;boardLabels.clear();snapshots=[];labelMode=null;saveLearning();applyFilter();status('Calibration cleared. Showing the original candidate count.')};
+let stream=null,cameraSession=0,timer=0;
+const dialog=el('capture'),video=el('video');
+function stopCamera(){cameraSession++;clearInterval(timer);timer=0;stream?.getTracks().forEach(track=>track.stop());stream=null;video.srcObject=null}
+function closeCamera(){stopCamera();if(dialog.open)dialog.close()}
+dialog.onclose=stopCamera;el('cancel').onclick=closeCamera;
+window.addEventListener('pagehide',closeCamera);
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&dialog.open)closeCamera()});
+el('camera').onclick=async()=>{
+ if(!navigator.mediaDevices?.getUserMedia||!dialog.showModal){el('native').click();return}
+ const session=++cameraSession;dialog.showModal();el('cameraState').textContent='Opening rear camera…';el('shutter').disabled=el('auto').disabled=true;
+ try{
+  const feed=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:'environment'},width:{ideal:2560},height:{ideal:1920}}});
+  if(session!==cameraSession){feed.getTracks().forEach(t=>t.stop());return}
+  stream=feed;video.srcObject=feed;await video.play();if(session!==cameraSession)return;
+  el('shutter').disabled=el('auto').disabled=false;el('cameraState').textContent='Capture now, or hold steady for automatic capture.'
+ }catch{if(session===cameraSession){closeCamera();status('Live preview unavailable. Use your camera app and choose its photo here, or try the system camera.');el('fallback').hidden=false}}
+};
+el('fallback').onclick=()=>el('native').click();
+function captureFrame(){
+ if(!video.videoWidth||!video.videoHeight)return;
+ ++sequence;const scale=Math.min(1,2304/Math.max(video.videoWidth,video.videoHeight));source.width=Math.round(video.videoWidth*scale);source.height=Math.round(video.videoHeight*scale);
+ src.drawImage(video,0,0,source.width,source.height);closeCamera();reset('Camera capture');status('Board captured. Magnify to check crowded patches and touching insects.')
+}
+el('shutter').onclick=captureFrame;
+el('auto').onclick=()=>{
+ const thumb=document.createElement('canvas');thumb.width=48;thumb.height=36;const c=thumb.getContext('2d',{willReadFrequently:true});
+ let prev=null,stable=0,attempts=0;el('auto').disabled=true;el('cameraState').textContent='Hold steady…';
+ timer=setInterval(()=>{
+  if(!video.videoWidth)return;
+  c.drawImage(video,0,0,48,36);const now=c.getImageData(0,0,48,36).data;
+  if(prev){let diff=0;for(let i=0;i<now.length;i+=4)diff+=Math.abs(now[i+1]-prev[i+1]);
+   stable=diff/(48*36)<3.2?stable+1:0}
+  prev=now;if(stable>=6){captureFrame();return}
+  if(++attempts>=60){clearInterval(timer);timer=0;el('auto').disabled=false;el('cameraState').textContent='Still seeing movement. Capture manually or try again.'}
+ },200)
 };
 window.addEventListener('resize',()=>{if(area)draw()});demo();
 </script></body></html>
